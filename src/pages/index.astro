@@ -1,23 +1,35 @@
 ---
-import "../assets/main.css"; // load your stylesheet
-const links = [
-  { href: "/libaud/",   label: "libaud   (audio)" },
-  { href: "/libgrphx/", label: "libgrphx (graphics)" },
-  { href: "/libmerch/", label: "libmerch (merch / prints)" },
-  { href: "/libtxt/",   label: "libtxt   (texts)" },
-  { href: "/libviz/",   label: "libviz   (visuals)" },
+import "../assets/main.css";
+
+// TEMP demo data (we'll move this to files later)
+const releases = [
+  { title: "Protocol.001", href: "https://example.com/protocol001", download: "#", vinyl: "#", cd: "#", cassette: "#" },
+  { title: "Protocol.002", href: "https://example.com/protocol002", download: "#", vinyl: "#", cd: "#", cassette: "#" },
+  { title: "Signal EP",    href: "https://example.com/signalep",   download: "#", vinyl: "#", cd: "#", cassette: "#" },
+];
+const artworks = [
+  { title: "Glyph A", buy: "#", preview: "#" },
+  { title: "Glyph B", buy: "#", preview: "#" },
+  { title: "Glyph C", buy: "#", preview: "#" },
+];
+const log = [
+  { date: "2025-11-06", text: "wired the hub chassis; added CRT panels and carousels." },
+  { date: "2025-11-05", text: "MUTHR theme locked; green glow calibrated.", img: "/public/favicon.svg" },
+  { date: "2025-11-04", text: "astro scaffold + gitops live." },
 ];
 ---
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>.srj — library node</title>
-    <!-- Google Fonts for Teko -->
+    <title>.srj — hub</title>
+
+    <!-- Google Fonts (Teko) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300&display=swap" rel="stylesheet">
-    <!-- Tight but font-friendly CSP -->
+
+    <!-- CSP: allow YouTube + SoundCloud iframes, Google Fonts -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
       img-src 'self' data:;
@@ -25,16 +37,76 @@ const links = [
       font-src  'self' https://fonts.gstatic.com;
       script-src 'self';
       connect-src 'self';
+      frame-src https://www.youtube.com https://youtube.com https://w.soundcloud.com https://soundcloud.com;
       frame-ancestors 'none';
       base-uri 'self';
       form-action 'self'
     ">
   </head>
-  <body style=""background:#002;"">
-    <pre class="frame">
-.srj / cybernetitron — library index
-====================================
-{links.map(l => `> ${l.label}  ${l.href}`).join('\n')}
-    </pre>
+  <body>
+    <div class="hub">
+      <div class="hub-grid">
+
+        <!-- 1) VIDEO (YouTube) -->
+        <section class="panel screen area-video">
+          <iframe
+            class="embed"
+            src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+            title="video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </section>
+
+        <!-- 2) ENTRY LOG (right, scrollable) -->
+        <aside class="panel screen area-log">
+          <div style="margin-bottom:8px;">entry log</div>
+          <div class="log-list">
+            {log.map(item => (
+              <div class="log-entry">
+                <div><small>{item.date}</small></div>
+                <div>{item.text}</div>
+                {item.img && <img src={item.img} alt="log media" />}
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        <!-- 3) RELEASES (left middle) -->
+        <section class="panel screen area-release">
+          <div style="margin-bottom:8px;">releases</div>
+          <div class="carousel">
+            {releases.map(r => (
+              <div class="card">
+                <div class="folder">{r.title}</div>
+                <a href={r.href}>page</a> · <a href={r.download}>free dl</a><br/>
+                <a href={r.vinyl}>vinyl</a> · <a href={r.cd}>cd</a> · <a href={r.cassette}>cassette</a>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <!-- 4) ARTWORK (right middle) -->
+        <section class="panel screen area-artwork">
+          <div style="margin-bottom:8px;">artwork</div>
+          <div class="carousel">
+            {artworks.map(a => (
+              <div class="card">
+                <div class="folder">{a.title}</div>
+                <a href={a.preview}>preview</a> · <a href={a.buy}>buy print</a>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <!-- 5) AUDIO (bottom) -->
+        <section class="panel screen area-audio">
+          <iframe
+            class="embed"
+            src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/123456789&auto_play=false&show_artwork=true"
+            title="soundcloud player"></iframe>
+        </section>
+
+      </div>
+    </div>
   </body>
 </html>
