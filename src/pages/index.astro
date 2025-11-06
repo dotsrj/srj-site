@@ -31,31 +31,36 @@ const log = [
 
     <!-- CSP: allow YouTube + SoundCloud iframes, Google Fonts -->
     <meta http-equiv="Content-Security-Policy" content="
-      default-src 'self';
-      img-src 'self' data:;
-      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-      font-src  'self' https://fonts.gstatic.com;
-      script-src 'self';
-      connect-src 'self';
-      frame-src https://www.youtube.com https://youtube.com https://w.soundcloud.com https://soundcloud.com;
-      frame-ancestors 'none';
-      base-uri 'self';
-      form-action 'self'
-    ">
+  default-src 'self';
+  img-src 'self' data:;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src  'self' https://fonts.gstatic.com;
+  script-src 'self';
+  connect-src 'self';
+  frame-src https://www.youtube-nocookie.com https://www.youtube.com https://youtube.com https://w.soundcloud.com https://soundcloud.com;
+  frame-ancestors 'none';
+  base-uri 'self';
+  form-action 'self'
+">
   </head>
   <body>
     <div class="hub">
       <div class="hub-grid">
 
-        <!-- 1) VIDEO (YouTube) -->
-        <section class="panel screen area-video">
-          <iframe
-            class="embed"
-            src="https://youtu.be/Hrafn9Pl29I?si=0Us1DvfmjU66tKzB"
-            title="video"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe>
-        </section>
+<!-- 1) VIDEO (YouTube, privacy mode) -->
+<section class="panel screen area-video">
+  <!-- Replace VIDEO_ID with your actual video id -->
+  <iframe
+    class="embed"
+    src="https://www.youtube-nocookie.com/embed/VIDEO_ID?rel=0&modestbranding=1&color=white"
+    title="YouTube player"
+    loading="lazy"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="no-referrer"
+    allowfullscreen>
+  </iframe>
+</section>
+
 
         <!-- 2) ENTRY LOG (right, scrollable) -->
         <aside class="panel screen area-log">
@@ -102,8 +107,8 @@ const log = [
         <section class="panel screen area-audio">
           <iframe
             class="embed"
-            src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/123456789&auto_play=false&show_artwork=true"
-            title="soundcloud player"></iframe>
+            src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%253Aplaylists%253A2078346597&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"></iframe><div style="font-size: 10px; color: #cccccc;line-break: anywhere;word-break: normal;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif;font-weight: 100;"><a href="https://soundcloud.com/dotsrj" title=".srj" target="_blank" style="color: #cccccc; text-decoration: none;">.srj</a> · <a href="https://soundcloud.com/dotsrj/sets/opus-no-12" title="Opus No. 12" target="_blank" style="color: #cccccc; text-decoration: none;">Opus No. 12</a></div>ayer/?url=https%3A//api.soundcloud.com/tracks/123456789&auto_play=false&show_artwork=true">
+          </iframe>
         </section>
 
       </div>
