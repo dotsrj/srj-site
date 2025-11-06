@@ -36,55 +36,105 @@ const log = [
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src  'self' https://fonts.gstatic.com;
   script-src 'self';
-  connect-src 'self';
+  connect-src 'self' https://formspree.io;
   frame-src https://www.youtube-nocookie.com https://www.youtube.com https://youtube.com https://w.soundcloud.com https://soundcloud.com;
   frame-ancestors 'none';
   base-uri 'self';
-  form-action 'self'
+  form-action 'self' https://formspree.io
 ">
+
   </head>
   <body>
     <div class="hub">
+      <div class="screw tl"></div>
+<div class="screw tr"></div>
+<div class="screw bl"></div>
+<div class="screw br"></div>
+<div class="leds" aria-hidden="true">
+  <div class="led green"></div>
+  <div class="led amber"></div>
+  <div class="led red"></div>
+</div>
+
       <div class="hub-grid">
 
 <!-- 1) VIDEO (YouTube, privacy mode) -->
 <section class="panel screen area-video">
-  <!-- Replace VIDEO_ID with your actual video id -->
+  <div class="wrap">
   <iframe
     class="embed"
-    src="https://www.youtube-nocookie.com/embed/VIDEO_ID?rel=0&modestbranding=1&color=white"
+    src="https://www.youtube.com/embed/Hrafn9Pl29I?si=HhlpcDUyh5hdNBab"
     title="YouTube player"
     loading="lazy"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    referrerpolicy="no-referrer"
     allowfullscreen>
   </iframe>
+  </div>
 </section>
 
+<section class="panel screen area-release"> … </section>
+<section class="panel screen area-artwork"> … </section>
+<section class="panel screen area-audio"> … </section>
 
-        <!-- 2) ENTRY LOG (right, scrollable) -->
-        <aside class="panel screen area-log">
-          <div style="margin-bottom:8px;">entry log</div>
-          <div class="log-list">
-            {log.map(item => (
-              <div class="log-entry">
-                <div><small>{item.date}</small></div>
-                <div>{item.text}</div>
-                {item.img && <img src={item.img} alt="log media" />}
-              </div>
-            ))}
-          </div>
-        </aside>
+<!-- RIGHT COLUMN: new stack spanning full height -->
+<aside class="right-stack">
+
+  <!-- A) LOGO square -->
+  <section class="panel screen area-logo" aria-label="logo">
+    <!-- Replace src with your logo image (PNG/SVG) when ready -->
+    <img src="/public/favicon.svg" alt=".srj logo" />
+    <!-- You can swap this for a <canvas> or <model-viewer> later -->
+  </section>
+
+  <!-- B) INBOX (black slab, green text) -->
+  <section class="panel inbox" aria-label="visitor input">
+    <form id="inbox-form" class="inbox" method="POST">
+      <div class="inbox-row">
+        <span class="prompt">/</span>
+        <input
+          type="text"
+          name="message"
+          maxlength="144"
+          placeholder="type ≤ 144 chars and press send"
+          aria-label="short message input"
+          required
+        />
+        <button type="submit">send</button>
+      </div>
+      <input type="hidden" name="source" value="srj-site" />
+    </form>
+    <div id="inbox-status" style="margin-top:6px; font-size:12px; opacity:.8;"></div>
+  </section>
+
+  <!-- C) ENTRY LOG (scrolls, fills the rest) -->
+  <section class="panel screen area-log">
+    <div style="margin-bottom:8px;">entry log</div>
+    <div class="log-list">
+      {log.map((item) => (
+        <div class="log-entry">
+          <div><span class="badge">{item.date}</span></div>
+          <div>{item.text}</div>
+          {item.img && <img src={item.img} alt="log media" />}
+        </div>
+      ))}
+    </div>
+  </section>
+
+</aside>
+
 
         <!-- 3) RELEASES (left middle) -->
         <section class="panel screen area-release">
+            <div class="wrap">
           <div style="margin-bottom:8px;">releases</div>
           <div class="carousel">
             {releases.map(r => (
               <div class="card">
                 <div class="folder">{r.title}</div>
+                <small>/releases/{r.title.toLowerCase().replaceAll(' ', '-')}</small><br/>
                 <a href={r.href}>page</a> · <a href={r.download}>free dl</a><br/>
                 <a href={r.vinyl}>vinyl</a> · <a href={r.cd}>cd</a> · <a href={r.cassette}>cassette</a>
+              </div>
               </div>
             ))}
           </div>
@@ -92,12 +142,15 @@ const log = [
 
         <!-- 4) ARTWORK (right middle) -->
         <section class="panel screen area-artwork">
-          <div style="margin-bottom:8px;">artwork</div>
+           <div class="wrap">
+          <div style="margin-bottom:8px;">graphix</div>
           <div class="carousel">
             {artworks.map(a => (
               <div class="card">
                 <div class="folder">{a.title}</div>
+                <small>/graphix/{a.title.toLowerCase().replaceAll(' ', '-')}</small><br/>
                 <a href={a.preview}>preview</a> · <a href={a.buy}>buy print</a>
+              </div>
               </div>
             ))}
           </div>
@@ -105,13 +158,83 @@ const log = [
 
         <!-- 5) AUDIO (bottom) -->
         <section class="panel screen area-audio">
+               <div class="wrap">
           <iframe
             class="embed"
-            src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%253Aplaylists%253A2078346597&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"></iframe><div style="font-size: 10px; color: #cccccc;line-break: anywhere;word-break: normal;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif;font-weight: 100;"><a href="https://soundcloud.com/dotsrj" title=".srj" target="_blank" style="color: #cccccc; text-decoration: none;">.srj</a> · <a href="https://soundcloud.com/dotsrj/sets/opus-no-12" title="Opus No. 12" target="_blank" style="color: #cccccc; text-decoration: none;">Opus No. 12</a></div>ayer/?url=https%3A//api.soundcloud.com/tracks/123456789&auto_play=false&show_artwork=true">
+            src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%253Aplaylists%253A2078346597&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"></iframe><div style="font-size: 10px; color: #cccccc;line-break: anywhere;word-break: normal;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif;font-weight: 100;"><a href="https://soundcloud.com/dotsrj" title=".srj" target="_blank" style="color: #cccccc; text-decoration: none;">.srj</a> · <a href="https://soundcloud.com/dotsrj/sets/opus-no-12" title="Opus No. 12" target="_blank" style="color: #cccccc; text-decoration: none;">
           </iframe>
         </section>
+        </div>
 
       </div>
     </div>
+  <script>
+  // Basic keyboard navigation for horizontal carousels
+  const carousels = document.querySelectorAll('.carousel');
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const active = document.activeElement;
+    // Find the nearest carousel to the focused link/card
+    let root = active && active.closest ? active.closest('.carousel') : null;
+    if (!root) root = carousels[0];
+    if (!root) return;
+    const delta = (e.key === 'ArrowRight' ? 220 : -220);
+    root.scrollBy({ left: delta, behavior: 'smooth' });
+  });
+</script>
+
+<script>
+  (function () {
+    const form = document.getElementById('inbox-form');
+    const status = document.getElementById('inbox-status');
+
+    // TODO: replace with your Formspree endpoint after you create it
+    // e.g., const ENDPOINT = "https://formspree.io/f/abcdefg";
+  const ENDPOINT = "https://formspree.io/f/xanlrvgq";
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const message = (fd.get('message') || '').toString().trim();
+
+      if (!message) {
+        status.textContent = 'nothing to send.';
+        return;
+      }
+      if (message.length > 144) {
+        status.textContent = 'message too long (max 144).';
+        return;
+      }
+
+      // If no endpoint yet, save locally so you can test the UI now.
+      if (!ENDPOINT) {
+        const existing = JSON.parse(localStorage.getItem('srj_inbox') || '[]');
+        existing.push({ at: new Date().toISOString(), message });
+        localStorage.setItem('srj_inbox', JSON.stringify(existing));
+        status.textContent = 'saved locally (configure backend to collect).';
+        form.reset();
+        return;
+      }
+
+      try {
+        const res = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          body: fd
+        });
+        if (res.ok) {
+          status.textContent = 'sent. thank you.';
+          form.reset();
+        } else {
+          status.textContent = 'send failed (server).';
+        }
+      } catch (err) {
+        status.textContent = 'send failed (network).';
+      }
+    });
+  })();
+</script>
+
+
   </body>
 </html>
