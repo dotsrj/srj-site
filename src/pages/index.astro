@@ -1,16 +1,40 @@
 ---
-
+import "../assets/main.css"; // load your stylesheet
+const links = [
+  { href: "/libaud/",   label: "libaud   (audio)" },
+  { href: "/libgrphx/", label: "libgrphx (graphics)" },
+  { href: "/libmerch/", label: "libmerch (merch / prints)" },
+  { href: "/libtxt/",   label: "libtxt   (texts)" },
+  { href: "/libviz/",   label: "libviz   (visuals)" },
+];
 ---
-
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>.srj — library node</title>
+    <!-- Google Fonts for Teko -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300&display=swap" rel="stylesheet">
+    <!-- Tight but font-friendly CSP -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      img-src 'self' data:;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src  'self' https://fonts.gstatic.com;
+      script-src 'self';
+      connect-src 'self';
+      frame-ancestors 'none';
+      base-uri 'self';
+      form-action 'self'
+    ">
+  </head>
+  <body style=""background:#002;"">
+    <pre class="frame">
+.srj / cybernetitron — library index
+====================================
+{links.map(l => `> ${l.label}  ${l.href}`).join('\n')}
+    </pre>
+  </body>
 </html>
