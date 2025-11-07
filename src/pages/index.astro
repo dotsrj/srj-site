@@ -2,15 +2,15 @@
 import "../assets/main.css";
 import { getCollection } from "astro:content";
 
-const BASE = import.meta.env.BASE_URL; // <— /srj-site/ in dev/Pages, "/" elsewhere
+// BASE ensures GitHub Pages subpath works, e.g. /srj-site/
+const BASE = import.meta.env.BASE_URL;
 
-const log = (await getCollection("log"))
-  .sort((a, b) => b.data.date.localeCompare(a.data.date));
-
+const log = (await getCollection("log")).sort((a, b) =>
+  b.data.date.localeCompare(a.data.date)
+);
 const releases = await getCollection("releases");
 const artworks = await getCollection("art");
 ---
-
 
 <html lang="en">
   <head>
@@ -18,332 +18,155 @@ const artworks = await getCollection("art");
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>.srj — hub</title>
 
-    <!-- Google Fonts (Teko) -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300&display=swap" rel="stylesheet">
 
-    <!-- CSP: allow YouTube + SoundCloud iframes, Google Fonts -->
+    <!-- Strict CSP (no inline JS; we use /js/main.js) -->
     <meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  img-src 'self' data:;
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  font-src  'self' https://fonts.gstatic.com;
-  script-src 'self' 'unsave-inline';
-  connect-src 'self' https://formspree.io;
-  frame-src https://www.youtube-nocookie.com https://www.youtube.com https://youtube.com https://w.soundcloud.com https://soundcloud.com;
-  frame-ancestors 'none';
-  base-uri 'self';
-  form-action 'self' https://formspree.io
-">
-
+      default-src 'self';
+      img-src 'self' data:;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src  'self' https://fonts.gstatic.com;
+      script-src 'self';
+      connect-src 'self' https://formspree.io;
+      frame-src https://www.youtube-nocookie.com https://www.youtube.com https://youtube.com https://w.soundcloud.com https://soundcloud.com;
+      frame-ancestors 'none';
+      base-uri 'self';
+      form-action 'self' https://formspree.io
+    ">
   </head>
   <body class="tiles-compact">
-
-    <div class="hub">
-      <div class="screw tl"></div>
-<div class="screw tr"></div>
-<div class="screw bl"></div>
-<div class="screw br"></div>
-<div class="leds" aria-hidden="true">
-  <div class="led green"></div>
-  <div class="led amber"></div>
-  <div class="led red"></div>
-</div>
-
-      <div class="hub-grid">
-
-<div style="position:fixed;bottom:8px;left:8px;z-index:9999;background:#000a;color:#9effc7;padding:6px 8px;border:1px solid #395;border-radius:6px;font:12px/1.2 ui-monospace,monospace;">
-  art count: {artworks.length}
-  <br/>slugs: {artworks.map(a => a.slug).join(", ")}
-</div>
-
-
-<!-- 1) VIDEO (YouTube, privacy mode) -->
-<section class="panel screen area-video">
-  <div class="wrap">
-  <iframe
-    class="embed"
-    src="https://www.youtube.com/embed/Hrafn9Pl29I?si=HhlpcDUyh5hdNBab"
-    title="YouTube player"
-    loading="lazy"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  </div>
-</section>
-
-<section class="panel screen area-release"> … </section>
-<section class="panel screen area-artwork"> … </section>
-<section class="panel screen area-audio"> … </section>
-
-<!-- RIGHT COLUMN START: one stack spanning the 3rd column -->
-<aside class="right-stack">
-
-  <!-- B) INBOX -->
-  <section class="panel inbox" aria-label="visitor input">
-    <form id="inbox-form" class="inbox" method="POST">
-      <div class="inbox-row">
-        <input
-          id="inbox-input"
-          type="text"
-          name="message"
-          maxlength="144"
-          placeholder=""
-          aria-label="short message input"
-          autocomplete="off"
-          autofocus
-          required
-        />
-      </div>
-      <input type="hidden" name="source" value="srj-site" />
-    </form>
-    <div id="inbox-status" style="margin-top:6px; font-size:12px; opacity:.8;"></div>
-  </section>
-
-<!-- (new position) AUDIO under inbox -->
-        <!-- 5) AUDIO (bottom) -->
-       <section class="panel screen area-audio">
-  <iframe
-    class="embed embed--sc"
-    title="SoundCloud player"
-    loading="lazy"
-    allow="autoplay"
-    referrerpolicy="no-referrer"
-    src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%253Aplaylists%253A2078346597&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true">
-  </iframe>
-</section>
-
-  <!-- C) ENTRY LOG fills the rest -->
-  <section class="panel screen area-log">
-    <div style="margin-bottom:8px;">entry log</div>
-    <div class="log-list">
-      {log.map((entry) => (
-        <div class="log-entry">
-          <div><span class="badge">{entry.data.date}</span></div>
-          <div>{entry.data.text}</div>
-          {entry.data.image && <img src={`${BASE}${entry.data.image}`} alt="log media" />}
+    <main class="hub-grid">
+      <!-- LEFT / TOP: VIDEO -->
+      <section class="panel screen area-video">
+        <div class="wrap">
+          <iframe
+            class="embed"
+            src="https://www.youtube.com/embed/Hrafn9Pl29I?si=HhlpcDUyh5hdNBab"
+            title="YouTube player"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+          </iframe>
         </div>
-      ))}
-    </div>
-  </section>
-</aside>
+      </section>
 
+      <!-- LEFT / BOTTOM: tabbed media -->
+      <section class="panel screen area-media" aria-label="media">
+        <div class="tabs">
+          <button class="tab is-active" data-tab="releases" type="button">releases</button>
+          <button class="tab" data-tab="art" type="button">art</button>
+        </div>
 
-
-    <!-- CENTER: Tabbed media square (Releases / Art) -->
-<section class="panel screen area-media" aria-label="media">
-  <div class="tabs">
-    <button class="tab is-active" data-tab="releases" type="button">releases</button>
-    <button class="tab" data-tab="art" type="button">art</button>
-  </div>
-
-  <div class="tabpanes">
-   <!-- Releases pane -->
-<div class="pane is-active" id="pane-releases">
-  <ul class="tree">
-    {releases.map((r) => (
-      <li>
-        <button
-          type="button"
-          class="tree-item"
-          data-title={r.data.title}
-          data-page={r.data.page || ""}
-          data-download={r.data.download || ""}
-          data-vinyl={r.data.vinyl || ""}
-          data-cd={r.data.cd || ""}
-          data-cassette={r.data.cassette || ""}
-        >
-          <span class="tree-glyph">▸</span> {r.data.title}
-        </button>
-      </li>
-    ))}
-  </ul>
-</div>
-
-
-    <!-- Art pane -->
-    <div class="pane" id="pane-art">
-      <div class="carousel">
-        {artworks.map((a) => (
-          <div class="card">
-            <div class="folder">
-              {a.data.image
-                ? <img src={`${BASE}${a.data.image}`} alt={`${a.data.title} image`} />
-                : <span>{a.data.title}</span>}
-            </div>
-            <small>/art/{a.slug}</small><br/>
-            {a.data.preview && <a href={a.data.preview}>preview</a>}{a.data.preview && ' · '}
-            {a.data.buy && <a href={a.data.buy}>buy print</a>}
+        <div class="tabpanes">
+          <!-- Releases: directory tree -->
+          <div class="pane is-active" id="pane-releases">
+            <ul class="tree">
+              {releases.map((r) => (
+                <li>
+                  <button
+                    type="button"
+                    class="tree-item"
+                    data-title={r.data.title}
+                    data-page={r.data.page || ""}
+                    data-download={r.data.download || ""}
+                    data-vinyl={r.data.vinyl || ""}
+                    data-cd={r.data.cd || ""}
+                    data-cassette={r.data.cassette || ""}
+                  >
+                    <span class="tree-glyph">▸</span> {r.data.title}
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
-        ))}
-      </div>
-    </div>
-  </div>
-</section>
 
-
+          <!-- Art: carousel -->
+          <div class="pane" id="pane-art">
+            <div class="carousel">
+              {artworks.map((a) => (
+                <div class="card">
+                  <div class="folder">
+                    {a.data.image
+                      ? <img src={`${BASE}${a.data.image}`} alt={`${a.data.title} image`} />
+                      : <span>{a.data.title}</span>}
+                  </div>
+                  <small>/art/{a.slug}</small><br/>
+                  {a.data.preview && <a href={a.data.preview}>preview</a>}{a.data.preview && ' · '}
+                  {a.data.buy && <a href={a.data.buy}>buy print</a>}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+      </section>
 
+      <!-- RIGHT: inbox → audio → log -->
+      <aside class="right-stack">
+        <!-- Inbox -->
+        <section class="panel inbox" aria-label="visitor input">
+          <form id="inbox-form" class="inbox" method="POST">
+            <div class="inbox-row">
+              <input
+                id="inbox-input"
+                type="text"
+                name="message"
+                maxlength="144"
+                placeholder=""
+                aria-label="short message input"
+                autocomplete="off"
+                autofocus
+                required
+              />
+            </div>
+            <input type="hidden" name="source" value="srj-site" />
+          </form>
+          <div id="inbox-status" style="margin-top:6px; font-size:12px; opacity:.8;"></div>
+        </section>
+
+        <!-- SoundCloud -->
+        <section class="panel screen area-audio">
+          <iframe
+            class="embed embed--sc"
+            title="SoundCloud player"
+            loading="lazy"
+            allow="autoplay"
+            referrerpolicy="no-referrer"
+            src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%253Aplaylists%253A2078346597">
+          </iframe>
+        </section>
+
+        <!-- Log -->
+        <section class="panel screen area-log">
+          <div style="margin-bottom:8px;">entry log</div>
+          <div class="log-list">
+            {log.map((entry) => (
+              <div class="log-entry">
+                <div><span class="badge">{entry.data.date}</span></div>
+                <div>{entry.data.text}</div>
+                {entry.data.image && <img src={`${BASE}${entry.data.image}`} alt="log media" />}
+              </div>
+            ))}
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <!-- Releases modal -->
+    <div id="release-modal" class="modal" hidden>
+      <div class="modal__window">
+        <div class="modal__title" id="release-modal-title"></div>
+        <div class="modal__links" id="release-modal-links"></div>
+        <div class="modal__actions">
+          <button type="button" class="btn" id="release-modal-close">close</button>
+        </div>
       </div>
+      <div class="modal__backdrop"></div>
     </div>
-  <script>
-  // Basic keyboard navigation for horizontal carousels
-  const carousels = document.querySelectorAll('.carousel');
-  window.addEventListener('keydown', (e) => {
-    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-    const active = document.activeElement;
-    // Find the nearest carousel to the focused link/card
-    let root = active && active.closest ? active.closest('.carousel') : null;
-    if (!root) root = carousels[0];
-    if (!root) return;
-    const delta = (e.key === 'ArrowRight' ? 220 : -220);
-    root.scrollBy({ left: delta, behavior: 'smooth' });
-  });
-</script>
 
-<script>
-  (function () {
-    const form = document.getElementById('inbox-form');
-    const input = document.getElementById('inbox-input');
-    const status = document.getElementById('inbox-status');
-
-    // Your Formspree endpoint:
-    const ENDPOINT = "https://formspree.io/f/xanlrvgq";
-
-    // Submit on Enter (no button)
-    input.addEventListener('keydown', async (e) => {
-      if (e.key !== 'Enter' || e.shiftKey) return;
-      e.preventDefault();
-      const message = (input.value || '').trim();
-      if (!message) {
-        status.textContent = 'nothing to send.';
-        return;
-      }
-      if (message.length > 144) {
-        status.textContent = 'message too long (max 144).';
-        return;
-      }
-
-      // build form data
-      const fd = new FormData(form);
-      fd.set('message', message);
-
-      // send
-      try {
-        const res = await fetch(ENDPOINT, {
-          method: 'POST',
-          headers: { 'Accept': 'application/json' },
-          body: fd
-        });
-        if (res.ok) {
-          status.textContent = 'send success.';
-          input.value = '';
-        } else {
-          status.textContent = 'send failed (server).';
-        }
-      } catch {
-        status.textContent = 'send failed (network).';
-      }
-    });
-  })();
-</script>
-
-<script>
-  // simple tab switcher
-  const tabs = document.querySelectorAll('.tab');
-  const panes = {
-    releases: document.getElementById('pane-releases'),
-    art: document.getElementById('pane-art')
-  };
-  tabs.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabs.forEach(b => b.classList.remove('is-active'));
-      btn.classList.add('is-active');
-      const target = btn.dataset.tab;
-      Object.values(panes).forEach(p => p.classList.remove('is-active'));
-      panes[target].classList.add('is-active');
-    });
-  });
-</script>
-
-<script>
-  // Directory tree → modal
-  (function(){
-    const modal = document.getElementById('release-modal');
-    const titleEl = document.getElementById('release-modal-title');
-    const linksEl = document.getElementById('release-modal-links');
-    const closeBtn = document.getElementById('release-modal-close');
-
-    function openModal(data){
-      titleEl.textContent = data.title || 'release';
-      // Build link list based on available fields
-      const rows = [];
-      if (data.page) rows.push(`<a href="${data.page}" target="_blank" rel="noopener">release page</a>`);
-      if (data.download) rows.push(`<a href="${data.download}" target="_blank" rel="noopener">free download</a>`);
-      if (data.vinyl) rows.push(`<a href="${data.vinyl}" target="_blank" rel="noopener">vinyl</a>`);
-      if (data.cd) rows.push(`<a href="${data.cd}" target="_blank" rel="noopener">cd</a>`);
-      if (data.cassette) rows.push(`<a href="${data.cassette}" target="_blank" rel="noopener">cassette</a>`);
-      linksEl.innerHTML = rows.length ? rows.map(r => `<div>${r}</div>`).join('') : '<div>no links available</div>';
-      modal.hidden = false;
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeModal(){
-      modal.hidden = true;
-      document.body.style.overflow = '';
-    }
-
-    document.querySelectorAll('.tree-item').forEach(btn => {
-      btn.addEventListener('click', () => {
-        openModal({
-          title: btn.dataset.title,
-          page: btn.dataset.page,
-          download: btn.dataset.download,
-          vinyl: btn.dataset.vinyl,
-          cd: btn.dataset.cd,
-          cassette: btn.dataset.cassette
-        });
-      });
-    });
-
-    closeBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-      if (e.target.classList.contains('modal__backdrop')) closeModal();
-    });
-    document.addEventListener('keydown', (e) => {
-      if (!modal.hidden && e.key === 'Escape') closeModal();
-    });
-  })();
-</script>
-
-
-<!-- Releases modal -->
-<div id="release-modal" class="modal" hidden>
-  <div class="modal__window">
-    <div class="modal__title" id="release-modal-title"></div>
-    <div class="modal__links" id="release-modal-links"></div>
-    <div class="modal__actions">
-      <button type="button" class="btn" id="release-modal-close">close</button>
-    </div>
-  </div>
-  <div class="modal__backdrop"></div>
-</div>
-
-<script>
-// Auto tag landscape vs portrait for art images
-document.querySelectorAll('#pane-art .card .folder img').forEach(img => {
-  if (img.complete) tag(); else img.addEventListener('load', tag);
-  function tag(){
-    const landscape = img.naturalWidth > img.naturalHeight;
-    const card = img.closest('.card');
-    if (!card) return;
-    card.style.setProperty('--card-w', landscape ? '880px' : '340px');
-    card.style.setProperty('--card-h', landscape ? '340px' : '880px');
-  }
-});
-</script>
-
-
+    <!-- One external JS file -->
+    <script src={`${BASE}js/main.js`} defer></script>
   </body>
 </html>
