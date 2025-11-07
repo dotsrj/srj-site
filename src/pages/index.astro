@@ -37,8 +37,10 @@ const artworks = await getCollection("art");
       form-action 'self' https://formspree.io
     ">
   </head>
-  <body class="tiles-compact">
+<body class="tiles-compact">
+  <div class="hub-shell">
     <main class="hub-grid">
+
       <!-- LEFT / TOP: VIDEO -->
       <section class="panel screen area-video">
         <div class="wrap">
@@ -168,5 +170,6 @@ const artworks = await getCollection("art");
 
     <!-- One external JS file -->
     <script src={`${BASE}js/main.js`} defer></script>
+    </div>
   </body>
 </html>

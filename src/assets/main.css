@@ -140,3 +140,149 @@ body{font:14px/1.45 ui-monospace,Consolas,monospace}
   }
   .area-audio .embed--sc{ height:200px }
 }
+
+/* =============== MUTHR CHASSIS + CRT FINISH =============== */
+
+/* Ambient vignette */
+body::after{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background:
+    radial-gradient(1200px 800px at 50% 0%, rgba(255,255,255,0.04), transparent 60%),
+    radial-gradient(1200px 800px at 50% 100%, rgba(0,0,0,0.25), transparent 65%);
+  mix-blend-mode: normal; z-index:0;
+}
+
+/* Atomic-age chassis around the whole hub */
+.hub-shell{
+  position:relative; z-index:1; /* sit above vignette */
+  margin: clamp(8px, 2vw, 16px);
+  padding: clamp(12px, 2vw, 18px);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, #f6f4ea, #efece1 60%, #e7e3d6),
+    repeating-linear-gradient(135deg, rgba(0,0,0,0.02) 0 2px, rgba(0,0,0,0.015) 2px 4px);
+  box-shadow:
+    0 14px 28px rgba(0,0,0,.35),
+    0 2px 0 rgba(255,255,255,.35) inset,
+    0 -1px 0 rgba(0,0,0,.06) inset;
+  border: 1px solid rgba(60, 60, 60, 0.25);
+  outline: 1px solid rgba(255,255,255,0.35); /* subtle outer bezel line */
+  outline-offset: -2px;
+}
+
+/* Slightly soften panel corners inside the chassis so they look seated */
+.hub-shell .panel{
+  border-radius: 16px;
+}
+
+/* Recessed "screen" look for panels that are displays */
+.panel.screen{
+  background:
+    linear-gradient(#030703, #030603) padding-box;
+  border: 1px solid rgba(182,255,156,0.30);
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.45),
+    inset 0 0 0 1px rgba(182,255,156,0.08),
+    inset 0 14px 38px rgba(0,0,0,.65),
+    inset 0 -18px 48px rgba(0,0,0,.75);
+}
+
+/* Bezel edge highlight to imply depth */
+.panel.screen::before{
+  content:"";
+  position:absolute; inset:0; border-radius: inherit; pointer-events:none;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.05), transparent 35%),
+    radial-gradient(120% 100% at 50% -10%, rgba(255,255,255,.04), transparent 60%);
+  mix-blend-mode: screen;
+}
+
+/* CRT scanlines + very soft phosphor bloom */
+.panel.screen::after{
+  content:"";
+  position:absolute; inset:6px; border-radius: calc(16px - 6px); pointer-events:none;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(202,255,158,0.06) 0px,
+      rgba(202,255,158,0.06) 1px,
+      rgba(0,0,0,0.00) 2px,
+      rgba(0,0,0,0.00) 3px
+    );
+  filter: blur(.15px);
+  opacity: .5;
+}
+
+/* Lift the visible content above the scanline overlay */
+.panel.screen > *{
+  position: relative; z-index: 1;
+}
+
+/* Focus/hover glow: panels react to keyboard focus within or hover */
+.panel.screen:focus-within,
+.panel.screen:hover{
+  box-shadow:
+    0 12px 26px rgba(0,0,0,.5),
+    0 0 0 1px rgba(182,255,156,0.25) inset,
+    0 0 24px rgba(184,255,160,0.10),
+    inset 0 14px 28px rgba(0,0,0,.65);
+  transition: box-shadow .25s ease, transform .25s ease;
+}
+.panel.screen:hover{ transform: translateY(-1px); }
+
+/* Tabs: sleeker beveled chips */
+.tabs .tab{
+  background: linear-gradient(180deg, rgba(182,255,156,0.18), rgba(182,255,156,0.08));
+  border: 1px solid rgba(182,255,156,0.55);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.15) inset,
+    0 -1px 0 rgba(0,0,0,.25) inset;
+}
+.tabs .tab.is-active{
+  background: linear-gradient(180deg, rgba(182,255,156,0.30), rgba(182,255,156,0.16));
+}
+
+/* Entry log: darker glass with thin type */
+.area-log{
+  background:
+    radial-gradient(140% 100% at 50% 0%, rgba(0,0,0,0.45), rgba(0,0,0,0.85));
+  border: 1px solid rgba(182,255,156,0.25);
+}
+.log-list,
+.log-entry{
+  font-family: "IBM Plex Mono", "Fira Mono", "Courier New", monospace;
+  font-weight: 300;
+  letter-spacing: .02em;
+  color: rgba(170, 255, 190, 0.88);
+}
+
+/* Scrollbar polish (WebKit/blink) */
+.carousel::-webkit-scrollbar,
+.log-list::-webkit-scrollbar{ height: 10px; width: 10px }
+.carousel::-webkit-scrollbar-thumb,
+.log-list::-webkit-scrollbar-thumb{
+  background: rgba(182,255,156,.22);
+  border: 2px solid rgba(0,0,0,.6);
+  border-radius: 999px;
+}
+.carousel::-webkit-scrollbar-track,
+.log-list::-webkit-scrollbar-track{
+  background: rgba(0,0,0,.25);
+  border-radius: 999px;
+}
+
+/* Subtle entrance animation for major panels */
+.panel{
+  animation: panelIn .35s ease both;
+}
+@keyframes panelIn{
+  from{ transform: translateY(4px); opacity:0 }
+  to  { transform: translateY(0);   opacity:1 }
+}
+
+/* Keep iframes visually 'recessed' as well */
+.embed{
+  background: radial-gradient(120% 140% at 50% 0%, rgba(0,0,0,.65), rgba(0,0,0,.95));
+  box-shadow: inset 0 0 0 1px rgba(182,255,156,0.12);
+  border-radius: 10px;
+}

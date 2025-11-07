@@ -1,4 +1,5 @@
 ﻿---
 title: "sunrise"
-image: "image/sunrise.jpg"
+image: "images/sunrise.jpg"
 ---
+
