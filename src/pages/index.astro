@@ -29,7 +29,7 @@ const artworks = await getCollection("art");
   img-src 'self' data:;
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src  'self' https://fonts.gstatic.com;
-  script-src 'self';
+  script-src 'self' 'unsave-inline';
   connect-src 'self' https://formspree.io;
   frame-src https://www.youtube-nocookie.com https://www.youtube.com https://youtube.com https://w.soundcloud.com https://soundcloud.com;
   frame-ancestors 'none';
@@ -52,6 +52,12 @@ const artworks = await getCollection("art");
 </div>
 
       <div class="hub-grid">
+
+<div style="position:fixed;bottom:8px;left:8px;z-index:9999;background:#000a;color:#9effc7;padding:6px 8px;border:1px solid #395;border-radius:6px;font:12px/1.2 ui-monospace,monospace;">
+  art count: {artworks.length}
+  <br/>slugs: {artworks.map(a => a.slug).join(", ")}
+</div>
+
 
 <!-- 1) VIDEO (YouTube, privacy mode) -->
 <section class="panel screen area-video">
@@ -336,27 +342,6 @@ document.querySelectorAll('#pane-art .card .folder img').forEach(img => {
     card.style.setProperty('--card-h', landscape ? '340px' : '880px');
   }
 });
-</script>
-
-<script>
-  function sizeBadge(){
-    const g = document.querySelector('.hub-grid');
-    const r = g?.getBoundingClientRect();
-    const v = document.querySelector('.area-video')?.getBoundingClientRect();
-    const m = document.querySelector('.area-media')?.getBoundingClientRect();
-    const rs= document.querySelector('.right-stack')?.getBoundingClientRect();
-    const txt = [
-      `vw×vh: ${window.innerWidth}×${window.innerHeight}`,
-      r ? `grid: ${Math.round(r.width)}×${Math.round(r.height)}` : '',
-      v ? `video: ${Math.round(v.width)}×${Math.round(v.height)}` : '',
-      m ? `media: ${Math.round(m.width)}×${Math.round(m.height)}` : '',
-      rs? `right: ${Math.round(rs.width)}×${Math.round(rs.height)}` : ''
-    ].filter(Boolean).join('  |  ');
-    document.body.setAttribute('data-debug', txt);
-  }
-  window.addEventListener('resize', sizeBadge);
-  window.addEventListener('load', sizeBadge);
-  sizeBadge();
 </script>
 
 
