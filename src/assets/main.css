@@ -1311,3 +1311,126 @@ body.tiles-large    { --tile-w: 280px; --tile-h: 280px; --tile-gap: 14px; }
   padding-right: 2px;
 }
 .area-audio .embed--sc{ height: 150px; } /* or 140px */
+
+/* Default sizes (releases stay square-ish) */
+:root{
+  --tile-w: 240px;
+  --tile-h: 240px;
+  --tile-gap: 12px;
+}
+
+/* ART pane: make tiles much taller so full poster fits */
+#pane-art{
+  --tile-w: 340px;   /* width of each art card */
+  --tile-h: 880px;   /* height of the image area; bump if you need more */
+}
+
+/* Ensure full artwork is visible in ART (letterbox if needed) */
+#pane-art .card .folder{
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(20, 40, 20, 0.6) 0%,
+    rgba(0, 0, 0, 0.95) 100%
+  );
+}
+#pane-art .card .folder img{
+  object-fit: contain;     /* show the entire print */
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* If your ART still crops, increase this further: 720px, 760px, etc. */
+
+/* Directory tree styling */
+.tree{
+  list-style: none;
+  margin: 0;
+  padding: 8px 6px;
+  height: 100%;
+  overflow: auto;
+  background: rgba(20,40,20,0.25);
+  border: 1px solid rgba(182,255,156,0.35);
+  border-radius: 8px;
+}
+.tree li + li{ margin-top: 6px; }
+
+.tree-item{
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px dashed rgba(182,255,156,0.35);
+  color: #caff9e;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: "IBM Plex Mono","Fira Mono",monospace;
+  font-weight: 300;
+}
+.tree-item:hover{
+  background: rgba(182,255,156,0.08);
+}
+.tree-glyph{ opacity: .65; margin-right: 6px; }
+
+/* Modal */
+.modal{
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+.modal__backdrop{
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(2px);
+}
+.modal__window{
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 280px;
+  max-width: min(92vw, 520px);
+  background: radial-gradient(
+      circle at 50% 0%,
+      rgba(0,0,0,0.35) 0%,
+      rgba(0,0,0,0.9) 85%
+    ),
+    linear-gradient(#0a0a0a, #020402);
+  border: 1px solid rgba(182,255,156,0.5);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: #caff9e;
+  box-shadow:
+    0 0 12px rgba(0,0,0,0.6),
+    inset 0 0 18px rgba(182,255,156,0.06);
+}
+.modal__title{
+  font-family: 'Teko', sans-serif;
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+.modal__links a{
+  color: #b6ff9c;
+  text-decoration: none;
+  border-bottom: 1px dotted rgba(182,255,156,0.3);
+}
+.modal__links a:hover{
+  color: #caff9e;
+  border-bottom-color: rgba(182,255,156,0.6);
+}
+.modal__actions{
+  margin-top: 12px;
+  text-align: right;
+}
+.btn{
+  background: rgba(182,255,156,0.12);
+  border: 1px solid rgba(182,255,156,0.5);
+  color: #caff9e;
+  font-family: 'Teko', sans-serif;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btn:hover{
+  background: rgba(182,255,156,0.2);
+}

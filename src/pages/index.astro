@@ -133,26 +133,28 @@ const artworks = await getCollection("art");
   </div>
 
   <div class="tabpanes">
-    <!-- Releases pane -->
-    <div class="pane is-active" id="pane-releases">
-      <div class="carousel">
-        {releases.map((r) => (
-          <div class="card">
-            <div class="folder">
-              {r.data.cover
-                ? <img src={`${BASE}${r.data.cover}`} alt={`${r.data.title} cover`} />
-                : <span>{r.data.title}</span>}
-            </div>
-            <small>/releases/{r.slug}</small><br/>
-            {r.data.page && <a href={r.data.page}>page</a>}{r.data.page && ' · '}
-            {r.data.download && <a href={r.data.download}>free dl</a>}<br/>
-            {r.data.vinyl && <a href={r.data.vinyl}>vinyl</a>}{r.data.vinyl && ' · '}
-            {r.data.cd && <a href={r.data.cd}>cd</a>}{r.data.cd && ' · '}
-            {r.data.cassette && <a href={r.data.cassette}>cassette</a>}
-          </div>
-        ))}
-      </div>
-    </div>
+   <!-- Releases pane -->
+<div class="pane is-active" id="pane-releases">
+  <ul class="tree">
+    {releases.map((r) => (
+      <li>
+        <button
+          type="button"
+          class="tree-item"
+          data-title={r.data.title}
+          data-page={r.data.page || ""}
+          data-download={r.data.download || ""}
+          data-vinyl={r.data.vinyl || ""}
+          data-cd={r.data.cd || ""}
+          data-cassette={r.data.cassette || ""}
+        >
+          <span class="tree-glyph">▸</span> {r.data.title}
+        </button>
+      </li>
+    ))}
+  </ul>
+</div>
+
 
     <!-- Art pane -->
     <div class="pane" id="pane-art">
@@ -259,6 +261,68 @@ const artworks = await getCollection("art");
   });
 </script>
 
+<script>
+  // Directory tree → modal
+  (function(){
+    const modal = document.getElementById('release-modal');
+    const titleEl = document.getElementById('release-modal-title');
+    const linksEl = document.getElementById('release-modal-links');
+    const closeBtn = document.getElementById('release-modal-close');
+
+    function openModal(data){
+      titleEl.textContent = data.title || 'release';
+      // Build link list based on available fields
+      const rows = [];
+      if (data.page) rows.push(`<a href="${data.page}" target="_blank" rel="noopener">release page</a>`);
+      if (data.download) rows.push(`<a href="${data.download}" target="_blank" rel="noopener">free download</a>`);
+      if (data.vinyl) rows.push(`<a href="${data.vinyl}" target="_blank" rel="noopener">vinyl</a>`);
+      if (data.cd) rows.push(`<a href="${data.cd}" target="_blank" rel="noopener">cd</a>`);
+      if (data.cassette) rows.push(`<a href="${data.cassette}" target="_blank" rel="noopener">cassette</a>`);
+      linksEl.innerHTML = rows.length ? rows.map(r => `<div>${r}</div>`).join('') : '<div>no links available</div>';
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(){
+      modal.hidden = true;
+      document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('.tree-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        openModal({
+          title: btn.dataset.title,
+          page: btn.dataset.page,
+          download: btn.dataset.download,
+          vinyl: btn.dataset.vinyl,
+          cd: btn.dataset.cd,
+          cassette: btn.dataset.cassette
+        });
+      });
+    });
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal__backdrop')) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (!modal.hidden && e.key === 'Escape') closeModal();
+    });
+  })();
+</script>
+
+
+<!-- Releases modal -->
+<div id="release-modal" class="modal" hidden>
+  <div class="modal__window">
+    <div class="modal__title" id="release-modal-title"></div>
+    <div class="modal__links" id="release-modal-links"></div>
+    <div class="modal__actions">
+      <button type="button" class="btn" id="release-modal-close">close</button>
+    </div>
+  </div>
+  <div class="modal__backdrop"></div>
+</div>
 
   </body>
 </html>
