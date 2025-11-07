@@ -338,6 +338,27 @@ document.querySelectorAll('#pane-art .card .folder img').forEach(img => {
 });
 </script>
 
+<script>
+  function sizeBadge(){
+    const g = document.querySelector('.hub-grid');
+    const r = g?.getBoundingClientRect();
+    const v = document.querySelector('.area-video')?.getBoundingClientRect();
+    const m = document.querySelector('.area-media')?.getBoundingClientRect();
+    const rs= document.querySelector('.right-stack')?.getBoundingClientRect();
+    const txt = [
+      `vw×vh: ${window.innerWidth}×${window.innerHeight}`,
+      r ? `grid: ${Math.round(r.width)}×${Math.round(r.height)}` : '',
+      v ? `video: ${Math.round(v.width)}×${Math.round(v.height)}` : '',
+      m ? `media: ${Math.round(m.width)}×${Math.round(m.height)}` : '',
+      rs? `right: ${Math.round(rs.width)}×${Math.round(rs.height)}` : ''
+    ].filter(Boolean).join('  |  ');
+    document.body.setAttribute('data-debug', txt);
+  }
+  window.addEventListener('resize', sizeBadge);
+  window.addEventListener('load', sizeBadge);
+  sizeBadge();
+</script>
+
 
   </body>
 </html>
