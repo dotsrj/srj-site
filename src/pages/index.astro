@@ -324,5 +324,20 @@ const artworks = await getCollection("art");
   <div class="modal__backdrop"></div>
 </div>
 
+<script>
+// Auto tag landscape vs portrait for art images
+document.querySelectorAll('#pane-art .card .folder img').forEach(img => {
+  if (img.complete) tag(); else img.addEventListener('load', tag);
+  function tag(){
+    const landscape = img.naturalWidth > img.naturalHeight;
+    const card = img.closest('.card');
+    if (!card) return;
+    card.style.setProperty('--card-w', landscape ? '880px' : '340px');
+    card.style.setProperty('--card-h', landscape ? '340px' : '880px');
+  }
+});
+</script>
+
+
   </body>
 </html>
