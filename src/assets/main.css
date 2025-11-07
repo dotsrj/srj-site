@@ -1434,3 +1434,32 @@ body.tiles-large    { --tile-w: 280px; --tile-h: 280px; --tile-gap: 14px; }
 .btn:hover{
   background: rgba(182,255,156,0.2);
 }
+
+/* Make the Art carousel always show a horizontal scrollbar if needed */
+#pane-art .carousel{
+  overflow-x: auto;
+  overflow-y: auto;   /* tall posters can also scroll vertically if needed */
+  scrollbar-gutter: stable both-edges; /* avoids layout shift when scrollbar appears */
+  scroll-snap-type: x mandatory;
+  padding-bottom: 12px; /* give the scrollbar some breathing room */
+}
+
+/* Slightly narrower default so three tiles are easier to see/scroll */
+#pane-art .card{
+  min-width: var(--card-w, var(--tile-w));
+}
+
+/* Add a subtle 'scroll hint' gradient on the right edge of the pane */
+#pane-art .carousel::after{
+  content: "";
+  position: sticky;
+  right: 0; bottom: 0; top: 0;
+  width: 28px;
+  pointer-events: none;
+  background: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,.35));
+}
+
+:root{
+  --tile-w: 300px;  /* portrait fallback */
+  --tile-h: 780px;
+}
