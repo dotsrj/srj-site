@@ -1,23 +1,17 @@
 ---
 import "../assets/main.css";
+import { getCollection } from "astro:content";
 
-// TEMP demo data (we'll move this to files later)
-const releases = [
-  { title: "Protocol.001", href: "https://example.com/protocol001", download: "#", vinyl: "#", cd: "#", cassette: "#" },
-  { title: "Protocol.002", href: "https://example.com/protocol002", download: "#", vinyl: "#", cd: "#", cassette: "#" },
-  { title: "Signal EP",    href: "https://example.com/signalep",   download: "#", vinyl: "#", cd: "#", cassette: "#" },
-];
-const artworks = [
-  { title: "Glyph A", buy: "#", preview: "#" },
-  { title: "Glyph B", buy: "#", preview: "#" },
-  { title: "Glyph C", buy: "#", preview: "#" },
-];
-const log = [
-  { date: "2025-11-06", text: "wired hub chassis; CRT and carousels." },
-  { date: "2025-11-05", text: "INFINITRON UX rwxr-xr-x; calibrated.", img: "/public/favicon.svg" },
-  { date: "2025-11-04", text: "astro scaffold + gitops live." },
-];
+const BASE = import.meta.env.BASE_URL; // <— /srj-site/ in dev/Pages, "/" elsewhere
+
+const log = (await getCollection("log"))
+  .sort((a, b) => b.data.date.localeCompare(a.data.date));
+
+const releases = await getCollection("releases");
+const artworks = await getCollection("art");
 ---
+
+
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -44,7 +38,8 @@ const log = [
 ">
 
   </head>
-  <body>
+  <body class="tiles-compact">
+
     <div class="hub">
       <div class="screw tl"></div>
 <div class="screw tr"></div>
@@ -76,94 +71,110 @@ const log = [
 <section class="panel screen area-artwork"> … </section>
 <section class="panel screen area-audio"> … </section>
 
-<!-- RIGHT COLUMN: new stack spanning full height -->
+<!-- RIGHT COLUMN START: one stack spanning the 3rd column -->
 <aside class="right-stack">
 
-  <!-- A) LOGO square -->
-  <section class="panel screen area-logo" aria-label="logo">
-    <!-- Replace src with your logo image (PNG/SVG) when ready -->
-    <img src="/public/favicon.svg" alt=".srj logo" />
-    <!-- You can swap this for a <canvas> or <model-viewer> later -->
-  </section>
-
-  <!-- B) INBOX (black slab, green text) -->
+  <!-- B) INBOX -->
   <section class="panel inbox" aria-label="visitor input">
     <form id="inbox-form" class="inbox" method="POST">
       <div class="inbox-row">
-        <span class="prompt">/</span>
         <input
+          id="inbox-input"
           type="text"
           name="message"
           maxlength="144"
-          placeholder="type ≤ 144 chars and press send"
+          placeholder=""
           aria-label="short message input"
+          autocomplete="off"
+          autofocus
           required
         />
-        <button type="submit">send</button>
       </div>
       <input type="hidden" name="source" value="srj-site" />
     </form>
     <div id="inbox-status" style="margin-top:6px; font-size:12px; opacity:.8;"></div>
   </section>
 
-  <!-- C) ENTRY LOG (scrolls, fills the rest) -->
+<!-- (new position) AUDIO under inbox -->
+        <!-- 5) AUDIO (bottom) -->
+       <section class="panel screen area-audio">
+  <iframe
+    class="embed embed--sc"
+    title="SoundCloud player"
+    loading="lazy"
+    allow="autoplay"
+    referrerpolicy="no-referrer"
+    src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%253Aplaylists%253A2078346597&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true">
+  </iframe>
+</section>
+
+  <!-- C) ENTRY LOG fills the rest -->
   <section class="panel screen area-log">
     <div style="margin-bottom:8px;">entry log</div>
     <div class="log-list">
-      {log.map((item) => (
+      {log.map((entry) => (
         <div class="log-entry">
-          <div><span class="badge">{item.date}</span></div>
-          <div>{item.text}</div>
-          {item.img && <img src={item.img} alt="log media" />}
+          <div><span class="badge">{entry.data.date}</span></div>
+          <div>{entry.data.text}</div>
+          {entry.data.image && <img src={`${BASE}${entry.data.image}`} alt="log media" />}
         </div>
       ))}
     </div>
   </section>
-
 </aside>
 
 
-        <!-- 3) RELEASES (left middle) -->
-        <section class="panel screen area-release">
-            <div class="wrap">
-          <div style="margin-bottom:8px;">releases</div>
-          <div class="carousel">
-            {releases.map(r => (
-              <div class="card">
-                <div class="folder">{r.title}</div>
-                <small>/releases/{r.title.toLowerCase().replaceAll(' ', '-')}</small><br/>
-                <a href={r.href}>page</a> · <a href={r.download}>free dl</a><br/>
-                <a href={r.vinyl}>vinyl</a> · <a href={r.cd}>cd</a> · <a href={r.cassette}>cassette</a>
-              </div>
-              </div>
-            ))}
-          </div>
-        </section>
 
-        <!-- 4) ARTWORK (right middle) -->
-        <section class="panel screen area-artwork">
-           <div class="wrap">
-          <div style="margin-bottom:8px;">graphix</div>
-          <div class="carousel">
-            {artworks.map(a => (
-              <div class="card">
-                <div class="folder">{a.title}</div>
-                <small>/graphix/{a.title.toLowerCase().replaceAll(' ', '-')}</small><br/>
-                <a href={a.preview}>preview</a> · <a href={a.buy}>buy print</a>
-              </div>
-              </div>
-            ))}
-          </div>
-        </section>
+    <!-- CENTER: Tabbed media square (Releases / Art) -->
+<section class="panel screen area-media" aria-label="media">
+  <div class="tabs">
+    <button class="tab is-active" data-tab="releases" type="button">releases</button>
+    <button class="tab" data-tab="art" type="button">art</button>
+  </div>
 
-        <!-- 5) AUDIO (bottom) -->
-        <section class="panel screen area-audio">
-               <div class="wrap">
-          <iframe
-            class="embed"
-            src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%253Aplaylists%253A2078346597&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"></iframe><div style="font-size: 10px; color: #cccccc;line-break: anywhere;word-break: normal;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif;font-weight: 100;"><a href="https://soundcloud.com/dotsrj" title=".srj" target="_blank" style="color: #cccccc; text-decoration: none;">.srj</a> · <a href="https://soundcloud.com/dotsrj/sets/opus-no-12" title="Opus No. 12" target="_blank" style="color: #cccccc; text-decoration: none;">
-          </iframe>
-        </section>
+  <div class="tabpanes">
+    <!-- Releases pane -->
+    <div class="pane is-active" id="pane-releases">
+      <div class="carousel">
+        {releases.map((r) => (
+          <div class="card">
+            <div class="folder">
+              {r.data.cover
+                ? <img src={`${BASE}${r.data.cover}`} alt={`${r.data.title} cover`} />
+                : <span>{r.data.title}</span>}
+            </div>
+            <small>/releases/{r.slug}</small><br/>
+            {r.data.page && <a href={r.data.page}>page</a>}{r.data.page && ' · '}
+            {r.data.download && <a href={r.data.download}>free dl</a>}<br/>
+            {r.data.vinyl && <a href={r.data.vinyl}>vinyl</a>}{r.data.vinyl && ' · '}
+            {r.data.cd && <a href={r.data.cd}>cd</a>}{r.data.cd && ' · '}
+            {r.data.cassette && <a href={r.data.cassette}>cassette</a>}
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Art pane -->
+    <div class="pane" id="pane-art">
+      <div class="carousel">
+        {artworks.map((a) => (
+          <div class="card">
+            <div class="folder">
+              {a.data.image
+                ? <img src={`${BASE}${a.data.image}`} alt={`${a.data.title} image`} />
+                : <span>{a.data.title}</span>}
+            </div>
+            <small>/art/{a.slug}</small><br/>
+            {a.data.preview && <a href={a.data.preview}>preview</a>}{a.data.preview && ' · '}
+            {a.data.buy && <a href={a.data.buy}>buy print</a>}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+
         </div>
 
       </div>
@@ -186,17 +197,17 @@ const log = [
 <script>
   (function () {
     const form = document.getElementById('inbox-form');
+    const input = document.getElementById('inbox-input');
     const status = document.getElementById('inbox-status');
 
-    // TODO: replace with your Formspree endpoint after you create it
-    // e.g., const ENDPOINT = "https://formspree.io/f/abcdefg";
-  const ENDPOINT = "https://formspree.io/f/xanlrvgq";
+    // Your Formspree endpoint:
+    const ENDPOINT = "https://formspree.io/f/xanlrvgq";
 
-    form.addEventListener('submit', async (e) => {
+    // Submit on Enter (no button)
+    input.addEventListener('keydown', async (e) => {
+      if (e.key !== 'Enter' || e.shiftKey) return;
       e.preventDefault();
-      const fd = new FormData(form);
-      const message = (fd.get('message') || '').toString().trim();
-
+      const message = (input.value || '').trim();
       if (!message) {
         status.textContent = 'nothing to send.';
         return;
@@ -206,16 +217,11 @@ const log = [
         return;
       }
 
-      // If no endpoint yet, save locally so you can test the UI now.
-      if (!ENDPOINT) {
-        const existing = JSON.parse(localStorage.getItem('srj_inbox') || '[]');
-        existing.push({ at: new Date().toISOString(), message });
-        localStorage.setItem('srj_inbox', JSON.stringify(existing));
-        status.textContent = 'saved locally (configure backend to collect).';
-        form.reset();
-        return;
-      }
+      // build form data
+      const fd = new FormData(form);
+      fd.set('message', message);
 
+      // send
       try {
         const res = await fetch(ENDPOINT, {
           method: 'POST',
@@ -223,16 +229,34 @@ const log = [
           body: fd
         });
         if (res.ok) {
-          status.textContent = 'sent. thank you.';
-          form.reset();
+          status.textContent = 'send success.';
+          input.value = '';
         } else {
           status.textContent = 'send failed (server).';
         }
-      } catch (err) {
+      } catch {
         status.textContent = 'send failed (network).';
       }
     });
   })();
+</script>
+
+<script>
+  // simple tab switcher
+  const tabs = document.querySelectorAll('.tab');
+  const panes = {
+    releases: document.getElementById('pane-releases'),
+    art: document.getElementById('pane-art')
+  };
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabs.forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      const target = btn.dataset.tab;
+      Object.values(panes).forEach(p => p.classList.remove('is-active'));
+      panes[target].classList.add('is-active');
+    });
+  });
 </script>
 
 
