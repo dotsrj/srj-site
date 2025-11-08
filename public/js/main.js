@@ -1,3 +1,15 @@
+// Simple typewriter for a single element (clears previous text)
+function typeText(el, text, speed = 18) {
+  if (!el) return;
+  el.textContent = '';
+  let i = 0;
+  (function tick(){
+    el.textContent = text.slice(0, i++);
+    if (i <= text.length) setTimeout(tick, speed);
+  })();
+}
+
+
 // 1) Keyboard nudge for horizontal carousels
 (function(){
   const carousels = document.querySelectorAll('.carousel');
@@ -66,6 +78,7 @@
     document.dispatchEvent(new CustomEvent('tab-activated', { detail: { name } }));
   }
 
+  // listeners
   tabs.forEach(btn => {
     btn.addEventListener('click', () => activate(btn.dataset.tab));
     btn.addEventListener('keydown', (e) => {
@@ -84,6 +97,7 @@
 })();
 
 
+ 
 // 4) Releases → modal
 (function(){
   const modal = document.getElementById('release-modal');
@@ -170,6 +184,19 @@
   const thumbs  = Array.from(document.querySelectorAll('#pane-art .thumb'));
   if (!mainImg || !thumbs.length) return;
 
+    // Toggle fit (letterboxed) vs full (1:1 scrollable) mode
+  function setFitMode(full){
+    if (full) {
+      mainImg.classList.add('is-full');     // CSS will remove max caps
+    } else {
+      mainImg.classList.remove('is-full');  // back to fit
+      // ask the fitter to reapply caps after leaving full mode
+      const evt = new CustomEvent('tab-activated', { detail: { name: 'art' }});
+      document.dispatchEvent(evt);
+    }
+  }
+
+
   function setActive(i){
     const btn = thumbs[i];
     if (!btn) return;
@@ -186,17 +213,36 @@
   mainImg.alt = `${title} image`;
   mainImg.dataset.index = String(i);
 
-    // update meta (title + links)
-    if (metaBox){
-      metaBox.innerHTML = `
-        <strong class="gallery__title">${title}</strong>
-        <div class="gallery__links">
-          ${preview ? `<a href="${preview}" target="_blank" rel="noopener">preview</a>` : ``}
-          ${(preview && buy) ? ' · ' : ``}
-          ${buy ? `<a href="${buy}" target="_blank" rel="noopener">buy print</a>` : ``}
-        </div>
-      `;
-    }
+    // reset to fit mode on new image (so users don't get stuck zoomed)
+    setFitMode(false);
+
+// update meta (title + links) — keep the DOM so we can type into .gallery__title
+if (metaBox){
+  // ensure children exist (first render already created them)
+  let titleEl = metaBox.querySelector('.gallery__title');
+  let linksEl = metaBox.querySelector('.gallery__links');
+  if (!titleEl) {
+    titleEl = document.createElement('strong');
+    titleEl.className = 'gallery__title';
+    metaBox.appendChild(titleEl);
+  }
+  if (!linksEl) {
+    linksEl = document.createElement('div');
+    linksEl.className = 'gallery__links';
+    metaBox.appendChild(linksEl);
+  }
+
+  // type the title
+  typeText(titleEl, title, 18);
+
+  // update links (static)
+  const parts = [];
+  if (preview) parts.push(`<a href="${preview}" target="_blank" rel="noopener">preview</a>`);
+  if (preview && buy) parts.push('·');
+  if (buy) parts.push(`<a href="${buy}" target="_blank" rel="noopener">buy print</a>`);
+  linksEl.innerHTML = parts.join(' ');
+}
+
 
     // active styles
     thumbs.forEach(t => {
@@ -211,6 +257,29 @@
   thumbs.forEach((btn, i) => {
     btn.addEventListener('click', () => setActive(i));
   });
+
+  // Double-click to toggle fit <-> 1:1
+  mainImg.addEventListener('dblclick', () => {
+    const full = !mainImg.classList.contains('is-full');
+    setFitMode(full);
+  });
+
+  // Press "f" to toggle when Art pane is visible
+  document.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() !== 'f') return;
+    const pane = document.getElementById('pane-art');
+    if (!pane || pane.hidden) return;
+    const full = !mainImg.classList.contains('is-full');
+    setFitMode(full);
+  });
+
+
+// type the initial title once
+const initialTitleEl = metaBox?.querySelector('.gallery__title');
+if (initialTitleEl) {
+  typeText(initialTitleEl, initialTitleEl.textContent || '', 18);
+}
+
 
   // keyboard left/right on the thumbnail strip
   const listbox = document.querySelector('#pane-art .gallery__thumbs');
@@ -234,13 +303,16 @@
   const pad = 16; // breathing room so borders/rounding don’t clip
 
   function fit(){
-    // If the pane is hidden, sizes are ~0. Bail out to avoid setting 0px caps.
+    // If user is in full (1:1) mode, do not clamp sizing
+    if (img.classList.contains('is-full')) return;
+
     const rect = box.getBoundingClientRect();
     if (rect.width < 10 || rect.height < 10) return;
 
     img.style.maxWidth  = (rect.width  - pad) + 'px';
     img.style.maxHeight = (rect.height - pad) + 'px';
   }
+
 
   // Re-fit when:
   window.addEventListener('resize', fit); // window changes
