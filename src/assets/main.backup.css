@@ -1059,6 +1059,16 @@ grid-template-areas:
   min-height: 82vh;
 }
 
+/* Right column layout: inbox (auto) + audio (fixed) + log (fill) */
+.right-stack { display:flex; flex-direction:column; gap:12px; min-height:0; }
+
+.panel.inbox { flex: 0 0 auto; }
+.area-audio  { flex: 0 0 auto; }      /* SC iframe has fixed height already */
+.area-log    { flex: 1 1 auto; min-height:0; display:flex; flex-direction:column; }
+
+/* The scrollable area inside the log must be allowed to grow/shrink */
+.log-list { flex: 1 1 auto; min-height:0; overflow:auto; }
+
 /* === Carousel sizing controls (applies to both Releases and Art) === */
 :root{
   /* Tweak these 3 numbers to resize everything quickly */

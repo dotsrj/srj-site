@@ -22,6 +22,8 @@ const artworks = await getCollection("art");
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+
 
     <!-- Strict CSP (no inline JS; we use /js/main.js) -->
     <meta http-equiv="Content-Security-Policy" content="
@@ -41,19 +43,26 @@ const artworks = await getCollection("art");
   <div class="hub-shell">
     <main class="hub-grid">
 
-      <!-- LEFT / TOP: VIDEO -->
-      <section class="panel screen area-video">
-        <div class="wrap">
-          <iframe
-            class="embed"
-            src="https://www.youtube.com/embed/Hrafn9Pl29I?si=HhlpcDUyh5hdNBab"
-            title="YouTube player"
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen>
-          </iframe>
-        </div>
-      </section>
+  <!-- STATUS / NAMEPLATE BAR -->
+<section class="panel shell-header area-status">
+  <div class="status-label">/users/111011000/.srj> ls </div>
+</section>
+
+<!-- VIDEO DISPLAY -->
+<section class="panel screen area-video">
+  <div class="wrap">
+    <iframe
+      class="embed"
+      src="https://www.youtube.com/embed/Hrafn9Pl29I?si=HhlpcDUyh5hdNBab"
+      title="YouTube player"
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowfullscreen>
+    </iframe>
+  </div>
+</section>
+
+
 
       <!-- LEFT / BOTTOM: tabbed media -->
       <section class="panel screen area-media" aria-label="media">
@@ -87,22 +96,50 @@ const artworks = await getCollection("art");
 
           <!-- Art: carousel -->
           <div class="pane" id="pane-art">
-            <div class="carousel">
-              {artworks.map((a) => (
-                <div class="card">
-                  <div class="folder">
-                    {a.data.image
-                      ? <img src={`${BASE}${a.data.image}`} alt={`${a.data.title} image`} />
-                      : <span>{a.data.title}</span>}
-                  </div>
-                  <small>/art/{a.slug}</small><br/>
-                  {a.data.preview && <a href={a.data.preview}>preview</a>}{a.data.preview && ' · '}
-                  {a.data.buy && <a href={a.data.buy}>buy print</a>}
-                </div>
-              ))}
-            </div>
-          </div>
+  <div class="gallery">
+    <!-- Main viewer -->
+    <div class="gallery__main">
+      {/*
+        Start with the first artwork. Astro renders the full BASE url here.
+        We also stash index/title/links as data-* so JS can update the meta.
+      */}
+      <img
+        id="art-main"
+        class="gallery__main-img"
+        src={`${BASE}${artworks[0].data.image}`}
+        alt={`${artworks[0].data.title} image`}
+        data-index="0"
+      />
+      <div class="gallery__meta" id="art-meta">
+        <strong class="gallery__title">{artworks[0].data.title}</strong>
+        <div class="gallery__links">
+          {artworks[0].data.preview && <a href={artworks[0].data.preview} target="_blank" rel="noopener">preview</a>}
+          {artworks[0].data.preview && artworks[0].data.buy && ' · '}
+          {artworks[0].data.buy && <a href={artworks[0].data.buy} target="_blank" rel="noopener">buy print</a>}
         </div>
+      </div>
+    </div>
+
+    <!-- Thumbnail strip -->
+    <div class="gallery__thumbs" role="listbox" aria-label="art thumbnails">
+      {artworks.map((a, i) => (
+        <button
+          type="button"
+          class={`thumb ${i===0 ? 'is-active' : ''}`}
+          data-index={i}
+          data-src={`${BASE}${a.data.image}`}
+          data-title={a.data.title}
+          data-preview={a.data.preview || ''}
+          data-buy={a.data.buy || ''}
+          aria-selected={i===0}
+          title={a.data.title}
+        >
+          <img src={`${BASE}${a.data.image}`} alt={`${a.data.title} thumbnail`} />
+        </button>
+      ))}
+    </div>
+  </div>
+</div>
       </section>
 
       <!-- RIGHT: inbox → audio → log -->
@@ -142,17 +179,17 @@ const artworks = await getCollection("art");
 
         <!-- Log -->
         <section class="panel screen area-log">
-          <div style="margin-bottom:8px;">entry log</div>
-          <div class="log-list">
-            {log.map((entry) => (
-              <div class="log-entry">
-                <div><span class="badge">{entry.data.date}</span></div>
-                <div>{entry.data.text}</div>
-                {entry.data.image && <img src={`${BASE}${entry.data.image}`} alt="log media" />}
-              </div>
-            ))}
-          </div>
-        </section>
+  <div style="margin-bottom:8px;">entry log</div>
+  <div class="log-list">
+    {log.map((entry) => (
+      <div class="log-entry" data-text={entry.data.text}>
+        <div><span class="badge">{entry.data.date}</span></div>
+        <div class="typed"></div>
+        {entry.data.image && <img src={`${BASE}${entry.data.image}`} alt="log media" />}
+      </div>
+    ))}
+  </div>
+</section>
       </aside>
     </main>
 
@@ -171,5 +208,8 @@ const artworks = await getCollection("art");
     <!-- One external JS file -->
     <script src={`${BASE}js/main.js`} defer></script>
     </div>
+
+ <script type="module" src={`${BASE}js/main.js`}></script>
+
   </body>
 </html>

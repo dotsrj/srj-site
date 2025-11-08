@@ -103,3 +103,104 @@
     if (img.complete) ready(); else img.addEventListener('load', ready);
   });
 })();
+
+// 6) Entry log typewriter (types each entry's text, sequentially)
+(function(){
+  const entries = Array.from(document.querySelectorAll('.log-entry'));
+  if (!entries.length) return;
+
+  const SPEED_MS   = 18;   // per character
+  const ENTRY_PAUSE= 250;  // after each entry
+
+  // Clear any pre-filled text (we will type it in)
+  entries.forEach(e => {
+    const t = e.querySelector('.typed');
+    if (t) t.textContent = '';
+  });
+
+  function typeEntry(idx){
+    if (idx >= entries.length) return;
+    const el = entries[idx];
+    const t  = el.querySelector('.typed');
+    if (!t) return typeEntry(idx+1);
+
+    const text = el.dataset.text || '';
+    let i = 0;
+
+    function tick(){
+      t.textContent = text.slice(0, i++);
+      // keep the log scrolled to bottom while typing
+      const list = document.querySelector('.log-list');
+      if (list) list.scrollTop = list.scrollHeight;
+
+      if (i <= text.length) {
+        setTimeout(tick, SPEED_MS);
+      } else {
+        setTimeout(() => typeEntry(idx+1), ENTRY_PAUSE);
+      }
+    }
+    tick();
+  }
+
+  // Start typing from the first visible entry
+  typeEntry(0);
+})();
+
+// 7) Art gallery: main image + thumbnail strip
+(function(){
+  const mainImg = document.getElementById('art-main');
+  const metaBox = document.getElementById('art-meta');
+  const thumbs  = Array.from(document.querySelectorAll('#pane-art .thumb'));
+  if (!mainImg || !thumbs.length) return;
+
+  function setActive(i){
+    const btn = thumbs[i];
+    if (!btn) return;
+    const src = btn.dataset.src;
+    const title = btn.dataset.title || '';
+    const preview = btn.dataset.preview || '';
+    const buy = btn.dataset.buy || '';
+
+    // swap main image
+    mainImg.src = src;
+    mainImg.alt = `${title} image`;
+    mainImg.dataset.index = String(i);
+
+    // update meta (title + links)
+    if (metaBox){
+      metaBox.innerHTML = `
+        <strong class="gallery__title">${title}</strong>
+        <div class="gallery__links">
+          ${preview ? `<a href="${preview}" target="_blank" rel="noopener">preview</a>` : ``}
+          ${(preview && buy) ? ' · ' : ``}
+          ${buy ? `<a href="${buy}" target="_blank" rel="noopener">buy print</a>` : ``}
+        </div>
+      `;
+    }
+
+    // active styles
+    thumbs.forEach(t => {
+      t.classList.remove('is-active');
+      t.setAttribute('aria-selected','false');
+    });
+    btn.classList.add('is-active');
+    btn.setAttribute('aria-selected','true');
+  }
+
+  // click thumbnails
+  thumbs.forEach((btn, i) => {
+    btn.addEventListener('click', () => setActive(i));
+  });
+
+  // keyboard left/right on the thumbnail strip
+  const listbox = document.querySelector('#pane-art .gallery__thumbs');
+  if (listbox){
+    listbox.addEventListener('keydown', (e) => {
+      const idx = parseInt(mainImg.dataset.index || '0', 10);
+      if (e.key === 'ArrowRight') { e.preventDefault(); setActive(Math.min(idx+1, thumbs.length-1)); }
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); setActive(Math.max(idx-1, 0)); }
+      if (e.key === 'Home')       { e.preventDefault(); setActive(0); }
+      if (e.key === 'End')        { e.preventDefault(); setActive(thumbs.length-1); }
+    });
+  }
+})();

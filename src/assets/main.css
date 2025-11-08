@@ -17,17 +17,19 @@ body{font:14px/1.45 ui-monospace,Consolas,monospace}
 .hub-grid{
   display:grid;
   grid-template-columns: 2.4fr 1.2fr;
-  grid-template-rows: minmax(260px, 34vh) 1fr;
+  grid-template-rows: auto minmax(260px, 34vh) 1fr;
   grid-template-areas:
-    "video log"
-    "media log";
+    "status log"
+    "video  log"
+    "media  log";
   gap:12px;
   min-height:100vh;
   padding:12px;
 }
-.area-video{ grid-area: video; }
-.area-media{ grid-area: media; position:relative; display:grid; align-items:center; justify-items:center; min-height:0; overflow:hidden; }
-.right-stack{ grid-area: log; display:flex; flex-direction:column; gap:12px; min-height:0; }
+.area-status { grid-area: status; }
+.area-video  { grid-area: video; }
+.area-media  { grid-area: media; position:relative; display:grid; align-items:center; justify-items:center; min-height:0; overflow:hidden; }
+.right-stack { grid-area: log; display:flex; flex-direction:column; gap:12px; min-height:0; }
 
 /* Panels */
 .panel{
@@ -41,7 +43,54 @@ body{font:14px/1.45 ui-monospace,Consolas,monospace}
 /* Video */
 .wrap{position:relative;width:100%;height:100%}
 .embed{width:100%;height:100%;border:0;border-radius:10px}
-.area-video .embed{aspect-ratio:16/9}
+.area-video .embed{aspect-ratio: auto;}
+
+/* =====================================================
+   VIDEO AREA — with header bar above player
+   ===================================================== */
+.area-video{
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header bar directly above the video player */
+.video-header{
+  flex: 0 0 auto;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 13px;
+  letter-spacing: .02em;
+  color: #000000;
+  background:
+    linear-gradient(180deg, #f6f4ea, #efece1 60%, #e7e3d6),
+    repeating-linear-gradient(135deg, rgba(0,0,0,0.02) 0 2px, rgba(0,0,0,0.015) 2px 4px);
+  border: 1px solid rgba(60,60,60,0.25);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.35),
+    inset 0 -1px 0 rgba(0,0,0,.08),
+    0 4px 12px rgba(0,0,0,.25);
+  text-align: left;
+}
+
+/* Wrap fills the remaining vertical space under the header */
+.area-video .wrap{
+  flex: 1 1 auto;
+  position: relative;
+  width: 100%;
+  height: auto;           /* let flex sizing handle it */
+  min-height: 0;          /* allow shrinking inside grid */
+}
+
+.area-video .embed{
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 10px;
+  aspect-ratio: auto;
+}
+
 
 /* Tabs + panes (media) */
 .tabs{ position:absolute; top:8px; left:50%; transform:translateX(-50%); z-index:2; display:flex; gap:8px; }
@@ -60,6 +109,105 @@ body{font:14px/1.45 ui-monospace,Consolas,monospace}
 .pane{display:none;width:100%;height:100%}
 .pane.is-active{display:block}
 
+/* ===== Art gallery (main viewer + thumbnail strip) ===== */
+.gallery{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  width:100%;
+  height:100%;
+}
+
+.gallery__main{
+  position:relative;
+  flex: 1 1 auto;
+  min-height: 0;             /* allow shrinking within the grid cell */
+  display:grid;
+  place-items:center;
+  padding: 8px;
+  border:1px solid rgba(182,255,156,0.35);
+  border-radius:10px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(20,40,20,.55), rgba(0,0,0,.95));
+  box-shadow: inset 0 0 0 1px rgba(182,255,156,0.08);
+}
+
+.gallery__main-img{
+  transition: opacity .18s ease;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;       /* letterbox inside viewer */
+  border-radius: 6px;
+  display:block;
+}
+.thumb.is-active ~ .gallery__main .gallery__main-img { opacity: 1; }
+
+
+/* Overlay meta (bottom-left) */
+.gallery__meta{
+  position:absolute;
+  left:10px; bottom:10px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(182,255,156,0.25);
+  border-radius: 8px;
+  padding: 4px 8px;
+  color: #caff9e;
+  font: 12px/1.3 ui-monospace, Consolas, monospace;
+}
+.gallery__title{ font-weight:600; margin-right:8px }
+.gallery__links a{ color:#b6ff9c; border-bottom:1px dotted rgba(182,255,156,.3) }
+.gallery__links a:hover{ color:#caff9e; border-bottom-color:rgba(182,255,156,.6) }
+
+/* Thumbnails strip */
+.gallery__thumbs{
+  flex: 0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px;
+  border:1px solid rgba(182,255,156,0.35);
+  border-radius:10px;
+  background: rgba(0,0,0,0.35);
+  overflow-x:auto;
+  scroll-snap-type: x mandatory;
+}
+
+.thumb{
+  scroll-snap-align:start;
+  background: transparent;
+  border: 1px dashed rgba(182,255,156,0.35);
+  border-radius: 8px;
+  padding: 3px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+}
+.thumb:hover{
+  transform: translateY(-1px);
+  border-color: rgba(182,255,156,0.6);
+  box-shadow: 0 0 0 1px rgba(182,255,156,0.2) inset;
+}
+.thumb.is-active{
+  border-style: solid;
+  border-color: rgba(182,255,156,0.8);
+  box-shadow: 0 0 0 1px rgba(182,255,156,0.35) inset, 0 0 8px rgba(182,255,156,0.18);
+}
+
+.thumb img{
+  display:block;
+  height: 88px;            /* thumb size */
+  width: 88px;             /* square frame */
+  object-fit: cover;       /* neat crops for the strip */
+  border-radius: 4px;
+}
+
+/* Make sure the Art pane allows the gallery to size correctly */
+#pane-art{ min-height: 0; }
+
+
 /* Releases tree */
 .tree{ list-style:none; margin:0; padding:8px 6px; height:100%; overflow:auto;
   background:rgba(20,40,20,0.18); border:1px solid rgba(182,255,156,0.35); border-radius:8px;}
@@ -71,28 +219,23 @@ body{font:14px/1.45 ui-monospace,Consolas,monospace}
 .tree-item:hover{ background:rgba(182,255,156,0.08) }
 .tree-glyph{ opacity:.65; margin-right:6px }
 
-/* Art carousel */
-.carousel{
-  display:flex; align-items:flex-start; gap:var(--tile-gap);
-  width:100%; height:100%; overflow-x:auto; overflow-y:auto;
-  scroll-snap-type: x mandatory; padding:8px 4px 10px;
-}
-.card{
-  min-width:var(--card-w, var(--tile-w));
-  background:rgba(20,40,20,0.28);
-  border:1px solid rgba(182,255,156,0.6);
-  border-radius:10px; padding:10px; scroll-snap-align:start;
-}
-.folder{ position:relative; overflow:hidden; height:var(--card-h, var(--tile-h));
-  border-radius:8px; margin-bottom:6px; background:radial-gradient(circle at 50% 50%, rgba(20,40,20,.6), rgba(0,0,0,.95)); }
-.folder img{ width:100%; height:100%; object-fit:contain; display:block; border-radius:6px}
-
 /* Right stack */
 .panel.inbox{ background:#000; border:1px solid rgba(182,255,156,0.35) }
 .inbox-row input{
   width:100%; background:#000; color:#9effc7; border:1px dashed rgba(182,255,156,0.35);
   padding:8px 10px; border-radius:8px; font:14px ui-monospace,Consolas,monospace;
 }
+
+/* Right column layout: inbox (auto) + audio (fixed) + log (fill) */
+.right-stack { display:flex; flex-direction:column; gap:12px; min-height:0; }
+
+.panel.inbox { flex: 0 0 auto; }
+.area-audio  { flex: 0 0 auto; }      /* SC iframe has fixed height already */
+.area-log    { flex: 1 1 auto; min-height:0; display:flex; flex-direction:column; }
+
+/* The scrollable area inside the log must be allowed to grow/shrink */
+.log-list { flex: 1 1 auto; min-height:0; overflow:auto; }
+
 
 /* SoundCloud */
 .area-audio .embed--sc{ width:100%; height:166px; border:none; display:block }
@@ -154,9 +297,11 @@ body::after{
 
 /* Atomic-age chassis around the whole hub */
 .hub-shell{
-  position:relative; z-index:1; /* sit above vignette */
+ --shell-pad: clamp(12px, 2vw, 18px);   /* NEW: padding variable */
+  position: relative;                    /* anchor for z-index layers */
+  z-index: 1;
   margin: clamp(8px, 2vw, 16px);
-  padding: clamp(12px, 2vw, 18px);
+  padding: var(--shell-pad);             /* use the var instead of a hard number */
   border-radius: 24px;
   background:
     linear-gradient(180deg, #f6f4ea, #efece1 60%, #e7e3d6),
@@ -286,3 +431,86 @@ body::after{
   box-shadow: inset 0 0 0 1px rgba(182,255,156,0.12);
   border-radius: 10px;
 }
+
+/* Typewriter caret for the .typed line */
+.typed::after{
+  content: "▉";
+  display: inline-block;
+  margin-left: 2px;
+  color: #9effc7;
+  animation: tw-blink 1s steps(1,end) infinite;
+}
+@keyframes tw-blink { 50% { opacity: 0; } }
+
+/* Shell heading above the video */
+.video-header{
+  margin: 2px 2px 8px 2px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 13px;
+  letter-spacing: .02em;
+  color: #9effc7;
+
+  background:
+    linear-gradient(180deg, #f6f4ea, #efece1 60%, #e7e3d6),
+    repeating-linear-gradient(135deg, rgba(0,0,0,0.02) 0 2px, rgba(0,0,0,0.015) 2px 4px);
+  border: 1px solid rgba(60, 60, 60, 0.25);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.35),
+    inset 0 -1px 0 rgba(0,0,0,.08),
+    0 4px 12px rgba(0,0,0,.25);
+}
+/* ===========================
+   STATUS / NAMEPLATE BOX
+   =========================== */
+.shell-header{
+    position: relative;                
+  top: 0;                           /* stick to the top of the scrolling viewport */
+  z-index: 2;      
+  margin-bottom: 8px;                
+  background:
+    linear-gradient(180deg, #f6f4ea, #efece1 60%, #e7e3d6),
+    repeating-linear-gradient(135deg, rgba(0,0,0,0.02) 0 2px, rgba(0,0,0,0.015) 2px 4px);
+  border: 1px solid rgba(60,60,60,0.25);
+  border-radius: 14px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.35),
+    inset 0 -1px 0 rgba(0,0,0,.08),
+    0 4px 12px rgba(0,0,0,.25);
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* Inner black “screen” window */
+.status-label{
+  flex: 1;
+  background: radial-gradient(circle at 50% 20%, rgba(10,20,10,0.9) 0%, rgba(0,0,0,0.95) 85%);
+  border-radius: 8px;
+  border: 1px solid rgba(182,255,156,0.25);
+  box-shadow:
+    inset 0 0 4px rgba(0,255,100,0.25),
+    0 0 6px rgba(0,0,0,0.6);
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 14px;
+  letter-spacing: .05em;
+  color: #9effc7;
+  text-shadow:
+    0 0 3px rgba(158,255,199,0.35),
+    0 0 8px rgba(158,255,199,0.15);
+  padding: 6px 10px;
+}
+
+/* Subtle outer green glow */
+.shell-header{ position: relative; }  /* keep the header in normal flow */
+.shell-header::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  pointer-events: none;
+  box-shadow: 0 0 24px rgba(158,255,199,0.1);
+}
+
