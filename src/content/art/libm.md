@@ -1,6 +1,6 @@
 ---
-title: "ART 1"
-image: "images/ART 1.jpg"
+title: "libm"
+image: "images/libm.jpg"
 preview: ""
 buy: ""
 ---

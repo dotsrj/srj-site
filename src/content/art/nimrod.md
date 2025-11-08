@@ -1,4 +1,4 @@
 ---
-title: "Nimrod"
+title: "nimrod"
 image: "images/nimrod.jpg"
 ---
