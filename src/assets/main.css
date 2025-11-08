@@ -92,22 +92,43 @@ body{font:14px/1.45 ui-monospace,Consolas,monospace}
 }
 
 
-/* Tabs + panes (media) */
-.tabs{ position:absolute; top:8px; left:50%; transform:translateX(-50%); z-index:2; display:flex; gap:8px; }
+/* Tabs pinned top-left inside the media panel */
+.tabs{
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+}
 .tab{
-  background:rgba(182,255,156,0.12);
-  color:var(--green);
-  border:1px solid rgba(182,255,156,0.5);
-  padding:4px 10px; border-radius:8px; cursor:pointer; font-family:'Teko',sans-serif;
+  background: rgba(182,255,156,0.12);
+  color: var(--green);
+  border: 1px solid rgba(182,255,156,0.5);
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Teko', sans-serif;
 }
-.tab.is-active{ background:rgba(182,255,156,0.22); }
+.tab.is-active{ background: rgba(182,255,156,0.22); }
+
+/* Pane area fills the rest below the tabs */
 .tabpanes{
-  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-  width:calc(100% - 20px); height:calc(100% - 56px);
-  max-width:100%; max-height:calc(100% - 56px); overflow:hidden; z-index:1;
+  position: absolute;
+  top: 48px;      /* headroom for tabs */
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 1;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  transform: none;   /* remove old centering */
 }
-.pane{display:none;width:100%;height:100%}
-.pane.is-active{display:block}
+.pane{ display: none; width: 100%; height: 100%; }
+.pane.is-active{ display: block; }
+
 
 /* ===== Art gallery (main viewer + thumbnail strip) ===== */
 .gallery{
@@ -145,10 +166,12 @@ body{font:14px/1.45 ui-monospace,Consolas,monospace}
 .thumb.is-active ~ .gallery__main .gallery__main-img { opacity: 1; }
 
 
-/* Overlay meta (bottom-left) */
+/* Overlay meta (top-left) */
 .gallery__meta{
-  position:absolute;
-  left:10px; bottom:10px;
+  position: absolute;
+  left: 10px;
+  top: 10px;     /* was bottom:10px */
+  bottom: auto;  /* ensure bottom is unset */
   background: rgba(0,0,0,0.45);
   border: 1px solid rgba(182,255,156,0.25);
   border-radius: 8px;
@@ -156,6 +179,7 @@ body{font:14px/1.45 ui-monospace,Consolas,monospace}
   color: #caff9e;
   font: 12px/1.3 ui-monospace, Consolas, monospace;
 }
+
 .gallery__title{ font-weight:600; margin-right:8px }
 .gallery__links a{ color:#b6ff9c; border-bottom:1px dotted rgba(182,255,156,.3) }
 .gallery__links a:hover{ color:#caff9e; border-bottom-color:rgba(182,255,156,.6) }
@@ -206,6 +230,7 @@ body{font:14px/1.45 ui-monospace,Consolas,monospace}
 
 /* Make sure the Art pane allows the gallery to size correctly */
 #pane-art{ min-height: 0; }
+
 
 
 /* Releases tree */
@@ -514,3 +539,29 @@ body::after{
   box-shadow: 0 0 24px rgba(158,255,199,0.1);
 }
 
+/* Make sure nested containers are allowed to shrink and the image can letterbox */
+.area-media,
+.tabpanes,
+#pane-art,
+.gallery,
+.gallery__main {
+  min-height: 0;
+}
+
+.gallery__main {
+  display: flex;               /* robust centering */
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery__main-img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.gallery__meta{
+  backdrop-filter: blur(2px);
+}

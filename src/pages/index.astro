@@ -67,8 +67,9 @@ const artworks = await getCollection("art");
       <!-- LEFT / BOTTOM: tabbed media -->
       <section class="panel screen area-media" aria-label="media">
         <div class="tabs">
-          <button class="tab is-active" data-tab="releases" type="button">releases</button>
-          <button class="tab" data-tab="art" type="button">art</button>
+<button class="tab is-active" data-tab="releases" type="button" aria-selected="true">releases</button>
+<button class="tab" data-tab="art" type="button" aria-selected="false">art</button>
+
         </div>
 
         <div class="tabpanes">
@@ -205,11 +206,10 @@ const artworks = await getCollection("art");
       <div class="modal__backdrop"></div>
     </div>
 
-    <!-- One external JS file -->
-    <script src={`${BASE}js/main.js`} defer></script>
-    </div>
+  
+    
 
  <script type="module" src={`${BASE}js/main.js`}></script>
-
+</div>
   </body>
 </html>

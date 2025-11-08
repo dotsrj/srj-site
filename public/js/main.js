@@ -38,20 +38,51 @@
 
 // 3) Tabs
 (function(){
-  const tabs = document.querySelectorAll('.tab');
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+  if (!tabs.length) return;
+
   const panes = {
     releases: document.getElementById('pane-releases'),
     art: document.getElementById('pane-art')
   };
+
+  function activate(name){
+    // tabs
+    tabs.forEach(b => {
+      const active = b.dataset.tab === name;
+      b.classList.toggle('is-active', active);
+      b.setAttribute('aria-selected', String(active));
+    });
+
+    // panes
+    Object.entries(panes).forEach(([key, el]) => {
+      if (!el) return;
+      const show = key === name;
+      el.classList.toggle('is-active', show);
+      el.hidden = !show;
+    });
+
+    // announce activation (art pane uses this to refit)
+    document.dispatchEvent(new CustomEvent('tab-activated', { detail: { name } }));
+  }
+
   tabs.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabs.forEach(b => b.classList.remove('is-active'));
-      btn.classList.add('is-active');
-      Object.values(panes).forEach(p => p.classList.remove('is-active'));
-      panes[btn.dataset.tab]?.classList.add('is-active');
+    btn.addEventListener('click', () => activate(btn.dataset.tab));
+    btn.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      const i = tabs.indexOf(btn);
+      const next = e.key === 'ArrowRight' ? (i+1) % tabs.length : (i-1+tabs.length) % tabs.length;
+      tabs[next].focus();
+      activate(tabs[next].dataset.tab);
     });
   });
+
+  // initial
+  const initial = tabs.find(b => b.classList.contains('is-active'))?.dataset.tab || 'releases';
+  activate(initial);
 })();
+
 
 // 4) Releases → modal
 (function(){
@@ -88,20 +119,6 @@
   document.getElementById('release-modal-close')?.addEventListener('click', close);
   modal.addEventListener('click', (e) => { if (e.target.classList.contains('modal__backdrop')) close(); });
   document.addEventListener('keydown', (e) => { if (!modal.hidden && e.key === 'Escape') close(); });
-})();
-
-// 5) Art auto-orientation (per-card CSS vars)
-(function(){
-  document.querySelectorAll('#pane-art .card .folder img').forEach(img => {
-    const ready = () => {
-      const landscape = img.naturalWidth > img.naturalHeight;
-      const card = img.closest('.card');
-      if (!card) return;
-      card.style.setProperty('--card-w', landscape ? '880px' : '340px');
-      card.style.setProperty('--card-h', landscape ? '340px' : '880px');
-    };
-    if (img.complete) ready(); else img.addEventListener('load', ready);
-  });
 })();
 
 // 6) Entry log typewriter (types each entry's text, sequentially)
@@ -161,10 +178,13 @@
     const preview = btn.dataset.preview || '';
     const buy = btn.dataset.buy || '';
 
-    // swap main image
-    mainImg.src = src;
-    mainImg.alt = `${title} image`;
-    mainImg.dataset.index = String(i);
+// inside setActive(i), right before "mainImg.src = src;"
+  // fade-out → swap → fade-in
+  mainImg.style.opacity = '0';
+  mainImg.addEventListener('load', () => { mainImg.style.opacity = '1'; }, { once: true });
+  mainImg.src = src;
+  mainImg.alt = `${title} image`;
+  mainImg.dataset.index = String(i);
 
     // update meta (title + links)
     if (metaBox){
@@ -203,4 +223,41 @@
       if (e.key === 'End')        { e.preventDefault(); setActive(thumbs.length-1); }
     });
   }
+})();
+
+// 8) Keep main art image fitted on visible resizes (guarded against hidden panes)
+(function(){
+  const box = document.querySelector('#pane-art .gallery__main');
+  const img = document.getElementById('art-main');
+  if (!box || !img) return;
+
+  const pad = 16; // breathing room so borders/rounding don’t clip
+
+  function fit(){
+    // If the pane is hidden, sizes are ~0. Bail out to avoid setting 0px caps.
+    const rect = box.getBoundingClientRect();
+    if (rect.width < 10 || rect.height < 10) return;
+
+    img.style.maxWidth  = (rect.width  - pad) + 'px';
+    img.style.maxHeight = (rect.height - pad) + 'px';
+  }
+
+  // Re-fit when:
+  window.addEventListener('resize', fit); // window changes
+  img.addEventListener('load', fit);      // new image loads
+
+  // when the Art tab is activated
+  document.addEventListener('tab-activated', (e) => {
+    if (e.detail?.name === 'art') {
+      // allow layout to settle
+      requestAnimationFrame(() => {
+        fit();
+        // one extra frame for fonts/scrollbars
+        requestAnimationFrame(fit);
+      });
+    }
+  });
+
+  // initial attempt (covers case where Art is initially active)
+  requestAnimationFrame(fit);
 })();

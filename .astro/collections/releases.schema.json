@@ -1,0 +1,39 @@
+{
+  "$ref": "#/definitions/releases",
+  "definitions": {
+    "releases": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "page": {
+          "type": "string"
+        },
+        "download": {
+          "type": "string"
+        },
+        "vinyl": {
+          "type": "string"
+        },
+        "cd": {
+          "type": "string"
+        },
+        "cassette": {
+          "type": "string"
+        },
+        "cover": {
+          "type": "string"
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
