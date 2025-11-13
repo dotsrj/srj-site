@@ -3,9 +3,9 @@ import { defineCollection, z } from "astro:content";
 const log = defineCollection({
   type: "content",
   schema: z.object({
-    date: z.string(),             // "2025-11-06"
-    text: z.string(),             // short log text
-    image: z.string().optional(), // "/images/foo.png"
+    date: z.string(),
+    text: z.string(),
+    image: z.string().optional(),
   }),
 });
 
@@ -13,12 +13,10 @@ const releases = defineCollection({
   type: "content",
   schema: z.object({
     title: z.string(),
-    page: z.string().optional(),     // (was .url())
-    download: z.string().optional(), // (was .url())
-    vinyl: z.string().optional(),    // (was .url())
-    cd: z.string().optional(),       // (was .url())
-    cassette: z.string().optional(), // (was .url())
-    cover: z.string().optional(),    // "/images/cover.jpg"
+    cover: z.string().optional(),        // "images/foo.jpg"
+    readme: z.string().optional(),       // "releases/foo_README.txt"
+    tracks: z.array(z.string()).default([]), // ["releases/foo.mp3"]
+    order: z.number().optional(),        // optional sorting index
   }),
 });
 
@@ -26,9 +24,9 @@ const art = defineCollection({
   type: "content",
   schema: z.object({
     title: z.string(),
-    preview: z.string().optional(),  // (was .url())
-    buy: z.string().optional(),      // (was .url())
-    image: z.string().optional(),    // "/images/art.jpg"
+    image: z.string(),
+    preview: z.string().optional(),
+    buy: z.string().optional(),
   }),
 });
 

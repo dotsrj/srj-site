@@ -9,7 +9,6 @@ function typeText(el, text, speed = 18) {
   })();
 }
 
-
 // 1) Keyboard nudge for horizontal carousels
 (function(){
   const carousels = document.querySelectorAll('.carousel');
@@ -96,44 +95,106 @@ function typeText(el, text, speed = 18) {
   activate(initial);
 })();
 
-
- 
-// 4) Releases → modal
+// 4) Releases → folder tree + inline player + copy URL
 (function(){
-  const modal = document.getElementById('release-modal');
-  if (!modal) return;
-  const titleEl = document.getElementById('release-modal-title');
-  const linksEl = document.getElementById('release-modal-links');
-  const closeBtn = document.getElementById('release-modal-close');
+  const pane = document.getElementById('pane-releases');
+  if (!pane) return;
 
-  function openModal(data){
-    titleEl.textContent = data.title || 'release';
-    const rows = [];
-    if (data.page) rows.push(`<a href="${data.page}" target="_blank" rel="noopener">release page</a>`);
-    if (data.download) rows.push(`<a href="${data.download}" target="_blank" rel="noopener">free download</a>`);
-    if (data.vinyl) rows.push(`<a href="${data.vinyl}" target="_blank" rel="noopener">vinyl</a>`);
-    if (data.cd) rows.push(`<a href="${data.cd}" target="_blank" rel="noopener">cd</a>`);
-    if (data.cassette) rows.push(`<a href="${data.cassette}" target="_blank" rel="noopener">cassette</a>`);
-    linksEl.innerHTML = rows.length ? rows.map(r => `<div>${r}</div>`).join('') : '<div>no links available</div>';
-    modal.hidden = false; document.body.style.overflow = 'hidden';
-  }
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest?.('.tree-item');
-    if (!btn) return;
-    openModal({
-      title: btn.dataset.title,
-      page: btn.dataset.page,
-      download: btn.dataset.download,
-      vinyl: btn.dataset.vinyl,
-      cd: btn.dataset.cd,
-      cassette: btn.dataset.cassette
-    });
+  // A) Toggle folders (use :scope to target only this node's contents)
+  pane.addEventListener('click', (e) => {
+    const toggle = e.target.closest('.tree-toggle');
+    if (!toggle) return;
+
+    const contents = toggle.parentElement?.querySelector(':scope > .tree-contents');
+    const glyph    = toggle.querySelector('.tree-glyph');
+    if (!contents) return;
+
+    const willOpen = contents.hasAttribute('hidden');
+    contents.hidden = !willOpen;
+    toggle.setAttribute('aria-expanded', String(willOpen));
+    if (glyph) glyph.textContent = willOpen ? '▾' : '▸';
   });
-  function close(){ modal.hidden = true; document.body.style.overflow = ''; }
-  document.getElementById('release-modal-close')?.addEventListener('click', close);
-  modal.addEventListener('click', (e) => { if (e.target.classList.contains('modal__backdrop')) close(); });
-  document.addEventListener('keydown', (e) => { if (!modal.hidden && e.key === 'Escape') close(); });
+
+  // B) Shared inline player dock
+  const dock  = document.getElementById('release-inline-player');
+  const audio = document.getElementById('rip-audio');
+  const label = document.getElementById('rip-label');
+
+  function mountPlayer(afterEl, src, title){
+    if (!dock || !audio || !label || !src) return;
+
+    // Set audio + label
+    audio.src = src;
+    label.textContent = title || (src.split('/').pop() || 'audio');
+
+    // Move dock right after the clicked <li> (or element itself)
+    const hostLi = afterEl.closest('li') || afterEl;
+    hostLi.insertAdjacentElement('afterend', dock);
+
+    // Show dock (CSS keeps it visually pinned at bottom of pane)
+    dock.hidden = false;
+
+    // Try to play — user gesture might be required, controls stay visible
+    audio.play().catch(() => {});
+  }
+
+  // C) Click handling for play / cover / copy (event delegation)
+  pane.addEventListener('click', async (e) => {
+    // Any element that can play audio: track title, 'play' button, or cover with .track-play
+    const playBtn = e.target.closest('.track-play, .track-playlink');
+    if (playBtn) {
+      const src   = playBtn.dataset.src;
+      const title = playBtn.dataset.title || '';
+      if (src) mountPlayer(playBtn, src, title);
+      return;
+    }
+
+    // If a cover existed without data-src, fall back to first track in that folder
+    const cover = e.target.closest('.tree-cover');
+    if (cover && !cover.dataset.src) {
+      const node = cover.closest('.tree-node');
+      const first =
+        node?.querySelector('.tree-tracks .track-playlink') ||
+        node?.querySelector('.tree-tracks .track-play');
+      if (first) first.click();
+      return;
+    }
+
+    // Copy URL
+    const copyBtn = e.target.closest('.track-copy');
+    if (copyBtn) {
+      const src = copyBtn.dataset.src;
+      if (!src) return;
+      try {
+        await navigator.clipboard.writeText(src);
+        copyBtn.textContent = 'copied';
+        setTimeout(() => { copyBtn.textContent = 'copy url'; }, 1000);
+      } catch {
+        copyBtn.textContent = 'copy failed';
+        setTimeout(() => { copyBtn.textContent = 'copy url'; }, 1200);
+      }
+    }
+  });
+
+  // D) Keyboard support: toggle & play via Enter / Space
+  pane.addEventListener('keydown', (e) => {
+    const isToggle = e.target.classList?.contains('tree-toggle');
+    const isPlay   = e.target.classList?.contains('track-playlink') || e.target.classList?.contains('track-play');
+
+    // Enter/Space toggles folder open/close
+    if (isToggle && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      e.target.click();
+    }
+
+    // Enter plays the track
+    if (isPlay && e.key === 'Enter') {
+      e.preventDefault();
+      e.target.click();
+    }
+  });
 })();
+
 
 // 6) Entry log typewriter (types each entry's text, sequentially)
 (function(){
@@ -184,18 +245,16 @@ function typeText(el, text, speed = 18) {
   const thumbs  = Array.from(document.querySelectorAll('#pane-art .thumb'));
   if (!mainImg || !thumbs.length) return;
 
-    // Toggle fit (letterboxed) vs full (1:1 scrollable) mode
+  // Toggle fit (letterboxed) vs full (1:1 scrollable) mode
   function setFitMode(full){
     if (full) {
-      mainImg.classList.add('is-full');     // CSS will remove max caps
+      mainImg.classList.add('is-full');
     } else {
-      mainImg.classList.remove('is-full');  // back to fit
-      // ask the fitter to reapply caps after leaving full mode
+      mainImg.classList.remove('is-full');
       const evt = new CustomEvent('tab-activated', { detail: { name: 'art' }});
       document.dispatchEvent(evt);
     }
   }
-
 
   function setActive(i){
     const btn = thumbs[i];
@@ -205,44 +264,37 @@ function typeText(el, text, speed = 18) {
     const preview = btn.dataset.preview || '';
     const buy = btn.dataset.buy || '';
 
-// inside setActive(i), right before "mainImg.src = src;"
-  // fade-out → swap → fade-in
-  mainImg.style.opacity = '0';
-  mainImg.addEventListener('load', () => { mainImg.style.opacity = '1'; }, { once: true });
-  mainImg.src = src;
-  mainImg.alt = `${title} image`;
-  mainImg.dataset.index = String(i);
+    // fade-out → swap → fade-in
+    mainImg.style.opacity = '0';
+    mainImg.addEventListener('load', () => { mainImg.style.opacity = '1'; }, { once: true });
+    mainImg.src = src;
+    mainImg.alt = `${title} image`;
+    mainImg.dataset.index = String(i);
 
-    // reset to fit mode on new image (so users don't get stuck zoomed)
+    // reset to fit mode on new image
     setFitMode(false);
 
-// update meta (title + links) — keep the DOM so we can type into .gallery__title
-if (metaBox){
-  // ensure children exist (first render already created them)
-  let titleEl = metaBox.querySelector('.gallery__title');
-  let linksEl = metaBox.querySelector('.gallery__links');
-  if (!titleEl) {
-    titleEl = document.createElement('strong');
-    titleEl.className = 'gallery__title';
-    metaBox.appendChild(titleEl);
-  }
-  if (!linksEl) {
-    linksEl = document.createElement('div');
-    linksEl.className = 'gallery__links';
-    metaBox.appendChild(linksEl);
-  }
-
-  // type the title
-  typeText(titleEl, title, 18);
-
-  // update links (static)
-  const parts = [];
-  if (preview) parts.push(`<a href="${preview}" target="_blank" rel="noopener">preview</a>`);
-  if (preview && buy) parts.push('·');
-  if (buy) parts.push(`<a href="${buy}" target="_blank" rel="noopener">buy print</a>`);
-  linksEl.innerHTML = parts.join(' ');
-}
-
+    // update meta (title + links)
+    if (metaBox){
+      let titleEl = metaBox.querySelector('.gallery__title');
+      let linksEl = metaBox.querySelector('.gallery__links');
+      if (!titleEl) {
+        titleEl = document.createElement('strong');
+        titleEl.className = 'gallery__title';
+        metaBox.appendChild(titleEl);
+      }
+      if (!linksEl) {
+        linksEl = document.createElement('div');
+        linksEl.className = 'gallery__links';
+        metaBox.appendChild(linksEl);
+      }
+      typeText(titleEl, title, 18);
+      const parts = [];
+      if (preview) parts.push(`<a href="${preview}" target="_blank" rel="noopener">preview</a>`);
+      if (preview && buy) parts.push('·');
+      if (buy) parts.push(`<a href="${buy}" target="_blank" rel="noopener">buy print</a>`);
+      linksEl.innerHTML = parts.join(' ');
+    }
 
     // active styles
     thumbs.forEach(t => {
@@ -273,13 +325,11 @@ if (metaBox){
     setFitMode(full);
   });
 
-
-// type the initial title once
-const initialTitleEl = metaBox?.querySelector('.gallery__title');
-if (initialTitleEl) {
-  typeText(initialTitleEl, initialTitleEl.textContent || '', 18);
-}
-
+  // type the initial title once
+  const initialTitleEl = metaBox?.querySelector('.gallery__title');
+  if (initialTitleEl) {
+    typeText(initialTitleEl, initialTitleEl.textContent || '', 18);
+  }
 
   // keyboard left/right on the thumbnail strip
   const listbox = document.querySelector('#pane-art .gallery__thumbs');
@@ -303,33 +353,24 @@ if (initialTitleEl) {
   const pad = 16; // breathing room so borders/rounding don’t clip
 
   function fit(){
-    // If user is in full (1:1) mode, do not clamp sizing
     if (img.classList.contains('is-full')) return;
-
     const rect = box.getBoundingClientRect();
     if (rect.width < 10 || rect.height < 10) return;
-
     img.style.maxWidth  = (rect.width  - pad) + 'px';
     img.style.maxHeight = (rect.height - pad) + 'px';
   }
 
+  window.addEventListener('resize', fit);
+  img.addEventListener('load', fit);
 
-  // Re-fit when:
-  window.addEventListener('resize', fit); // window changes
-  img.addEventListener('load', fit);      // new image loads
-
-  // when the Art tab is activated
   document.addEventListener('tab-activated', (e) => {
     if (e.detail?.name === 'art') {
-      // allow layout to settle
       requestAnimationFrame(() => {
         fit();
-        // one extra frame for fonts/scrollbars
         requestAnimationFrame(fit);
       });
     }
   });
 
-  // initial attempt (covers case where Art is initially active)
   requestAnimationFrame(fit);
 })();

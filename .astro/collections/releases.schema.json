@@ -7,23 +7,21 @@
         "title": {
           "type": "string"
         },
-        "page": {
-          "type": "string"
-        },
-        "download": {
-          "type": "string"
-        },
-        "vinyl": {
-          "type": "string"
-        },
-        "cd": {
-          "type": "string"
-        },
-        "cassette": {
-          "type": "string"
-        },
         "cover": {
           "type": "string"
+        },
+        "readme": {
+          "type": "string"
+        },
+        "tracks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "order": {
+          "type": "number"
         },
         "$schema": {
           "type": "string"

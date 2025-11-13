@@ -7,13 +7,13 @@
         "title": {
           "type": "string"
         },
+        "image": {
+          "type": "string"
+        },
         "preview": {
           "type": "string"
         },
         "buy": {
-          "type": "string"
-        },
-        "image": {
           "type": "string"
         },
         "$schema": {
@@ -21,7 +21,8 @@
         }
       },
       "required": [
-        "title"
+        "title",
+        "image"
       ],
       "additionalProperties": false
     }

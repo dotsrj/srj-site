@@ -1,9 +1,8 @@
 ---
-title: "Protocol.001"
-page: "https://example.com/protocol001"
-download: "https://example.com/dl/protocol-001.zip"
-vinyl: "#"
-cd: "#"
-cassette: "#"
+title: "[protocol.001{"
+order: 1
 cover: "images/protocol-001.jpg"
+readme: "releases/protocol-001_README.txt"
+tracks:
+  - "releases/protocol-001.mp3"
 ---
