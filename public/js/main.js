@@ -73,7 +73,7 @@ function typeText(el, text, speed = 18) {
       el.hidden = !show;
     });
 
-    // announce activation (art pane uses this to refit)
+    // announce activation (if needed elsewhere)
     document.dispatchEvent(new CustomEvent('tab-activated', { detail: { name } }));
   }
 
@@ -195,47 +195,33 @@ function typeText(el, text, speed = 18) {
   });
 })();
 
-
-// 6) Entry log typewriter (types each entry's text, sequentially)
+// 6) Entry log typewriter (ALL entries type at once, faster)
 (function(){
   const entries = Array.from(document.querySelectorAll('.log-entry'));
   if (!entries.length) return;
 
-  const SPEED_MS   = 18;   // per character
-  const ENTRY_PAUSE= 250;  // after each entry
+  const SPEED_MS = 6;  // much faster per character
 
-  // Clear any pre-filled text (we will type it in)
-  entries.forEach(e => {
-    const t = e.querySelector('.typed');
-    if (t) t.textContent = '';
-  });
+  entries.forEach((entry) => {
+    const t = entry.querySelector('.typed');
+    if (!t) return;
 
-  function typeEntry(idx){
-    if (idx >= entries.length) return;
-    const el = entries[idx];
-    const t  = el.querySelector('.typed');
-    if (!t) return typeEntry(idx+1);
-
-    const text = el.dataset.text || '';
+    const text = entry.dataset.text || '';
+    t.textContent = '';
     let i = 0;
 
-    function tick(){
+    (function tick(){
       t.textContent = text.slice(0, i++);
+
       // keep the log scrolled to bottom while typing
       const list = document.querySelector('.log-list');
       if (list) list.scrollTop = list.scrollHeight;
 
       if (i <= text.length) {
         setTimeout(tick, SPEED_MS);
-      } else {
-        setTimeout(() => typeEntry(idx+1), ENTRY_PAUSE);
       }
-    }
-    tick();
-  }
-
-  // Start typing from the first visible entry
-  typeEntry(0);
+    })();
+  });
 })();
 
 // 7) Art gallery: main image + thumbnail strip
@@ -245,15 +231,8 @@ function typeText(el, text, speed = 18) {
   const thumbs  = Array.from(document.querySelectorAll('#pane-art .thumb'));
   if (!mainImg || !thumbs.length) return;
 
-  // Toggle fit (letterboxed) vs full (1:1 scrollable) mode
-  function setFitMode(full){
-    if (full) {
-      mainImg.classList.add('is-full');
-    } else {
-      mainImg.classList.remove('is-full');
-      const evt = new CustomEvent('tab-activated', { detail: { name: 'art' }});
-      document.dispatchEvent(evt);
-    }
+  function setMode(full){
+    mainImg.classList.toggle('is-full', full);
   }
 
   function setActive(i){
@@ -272,7 +251,7 @@ function typeText(el, text, speed = 18) {
     mainImg.dataset.index = String(i);
 
     // reset to fit mode on new image
-    setFitMode(false);
+    setMode(false);
 
     // update meta (title + links)
     if (metaBox){
@@ -310,10 +289,10 @@ function typeText(el, text, speed = 18) {
     btn.addEventListener('click', () => setActive(i));
   });
 
-  // Double-click to toggle fit <-> 1:1
-  mainImg.addEventListener('dblclick', () => {
+  // SINGLE-click to toggle fit <-> 1:1 (scrollable) mode
+  mainImg.addEventListener('click', () => {
     const full = !mainImg.classList.contains('is-full');
-    setFitMode(full);
+    setMode(full);
   });
 
   // Press "f" to toggle when Art pane is visible
@@ -322,7 +301,7 @@ function typeText(el, text, speed = 18) {
     const pane = document.getElementById('pane-art');
     if (!pane || pane.hidden) return;
     const full = !mainImg.classList.contains('is-full');
-    setFitMode(full);
+    setMode(full);
   });
 
   // type the initial title once
@@ -342,35 +321,4 @@ function typeText(el, text, speed = 18) {
       if (e.key === 'End')        { e.preventDefault(); setActive(thumbs.length-1); }
     });
   }
-})();
-
-// 8) Keep main art image fitted on visible resizes (guarded against hidden panes)
-(function(){
-  const box = document.querySelector('#pane-art .gallery__main');
-  const img = document.getElementById('art-main');
-  if (!box || !img) return;
-
-  const pad = 16; // breathing room so borders/rounding don’t clip
-
-  function fit(){
-    if (img.classList.contains('is-full')) return;
-    const rect = box.getBoundingClientRect();
-    if (rect.width < 10 || rect.height < 10) return;
-    img.style.maxWidth  = (rect.width  - pad) + 'px';
-    img.style.maxHeight = (rect.height - pad) + 'px';
-  }
-
-  window.addEventListener('resize', fit);
-  img.addEventListener('load', fit);
-
-  document.addEventListener('tab-activated', (e) => {
-    if (e.detail?.name === 'art') {
-      requestAnimationFrame(() => {
-        fit();
-        requestAnimationFrame(fit);
-      });
-    }
-  });
-
-  requestAnimationFrame(fit);
 })();

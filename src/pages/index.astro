@@ -133,17 +133,17 @@ const releases = (await getCollection("releases")).sort((a, b) => {
                                   <span style="opacity:.6"> · </span>
                                   <a href={fullSrc} download>download</a>
 
-                                  <span style="opacity:.6"> · </span>
-                                  <button type="button" class="track-copy" data-src={fullSrc}>copy url</button>
+                                  <button type="button" class="track-action track-copy" data-src={fullSrc}>
+                                    \ copy url
+                                  </button>
 
-                                  <span style="opacity:.6"> · </span>
                                   <button
                                     type="button"
-                                    class="track-play"
+                                    class="track-action track-play"
                                     data-src={fullSrc}
                                     data-title={fullTitle}
                                   >
-                                    play
+                                    \ play
                                   </button>
                                 </li>
                               );
@@ -211,10 +211,20 @@ const releases = (await getCollection("releases")).sort((a, b) => {
 
         <!-- RIGHT COLUMN -->
         <aside class="right-stack">
-          <section class="panel inbox">
-            <form id="inbox-form" method="POST">
+          <section class="panel inbox" aria-label="visitor input">
+            <form id="inbox-form" class="inbox" method="POST">
               <div class="inbox-row">
-                <input id="inbox-input" name="message" maxlength="144" autocomplete="off" required />
+                <input
+                  id="inbox-input"
+                  type="text"
+                  name="message"
+                  maxlength="144"
+                  placeholder="gya haah hah hah! your soul... on my microchip!"
+                  aria-label="short message input"
+                  autocomplete="off"
+                  autofocus
+                  required
+                />
               </div>
               <input type="hidden" name="source" value="srj-site" />
             </form>
