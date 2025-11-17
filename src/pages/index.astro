@@ -65,6 +65,27 @@ const releases = (await getCollection("releases")).sort((a, b) => {
           </div>
         </section>
 
+        <!-- BUY STRIP -->
+        <section class="panel area-buy" aria-label="store links">
+          <a
+            href="https://your-store-url-for-cd-vinyl-cassette"
+            target="_blank"
+            rel="noopener"
+            class="buy-button"
+          >
+            buy cd / vinyl / cassette
+          </a>
+
+          <a
+            href="https://your-printful-store-url-here"
+            target="_blank"
+            rel="noopener"
+            class="buy-button"
+          >
+            buy prints
+          </a>
+        </section>
+
         <!-- MEDIA PANEL -->
         <section class="panel screen area-media" aria-label="media">
           <div class="tabs">
@@ -100,7 +121,7 @@ const releases = (await getCollection("releases")).sort((a, b) => {
                               alt={`${r.data.title} cover`}
                               data-src={firstTrack ? `${BASE}${firstTrack}` : undefined}
                               data-title={firstTitle}
-                              style="max-width:180px;border-radius:8px;border:1px solid rgba(182,255,156,0.35)"
+                              style="max-width:260px;border-radius:8px;border:1px solid rgba(182,255,156,0.35)"
                             />
                           </div>
                         )}
@@ -133,10 +154,6 @@ const releases = (await getCollection("releases")).sort((a, b) => {
                                   <span style="opacity:.6"> · </span>
                                   <a href={fullSrc} download>download</a>
 
-                                  <button type="button" class="track-action track-copy" data-src={fullSrc}>
-                                    \ copy url
-                                  </button>
-
                                   <button
                                     type="button"
                                     class="track-action track-play"
@@ -164,7 +181,7 @@ const releases = (await getCollection("releases")).sort((a, b) => {
 
             <!-- ART -->
             <div class="pane" id="pane-art">
-              <div class="gallery">
+              <div class="gallery gallery--grid">
                 <div class="gallery__main">
                   <img
                     id="art-main"
@@ -187,7 +204,7 @@ const releases = (await getCollection("releases")).sort((a, b) => {
                   </div>
                 </div>
 
-                <div class="gallery__thumbs" role="listbox">
+                <div class="gallery__thumbgrid" role="listbox" aria-label="artwork thumbnails">
                   {artworks.map((a, i) => (
                     <button
                       type="button"
@@ -199,7 +216,7 @@ const releases = (await getCollection("releases")).sort((a, b) => {
                       data-buy={a.data.buy || ""}
                       aria-selected={i === 0}
                     >
-                      <img src={`${BASE}${a.data.image}`} alt={`${a.data.title} thumbnail`} />
+                      <img src={`${BASE}${a.data.image}`} alt={`${a.data.title} thumbnail`} loading="lazy" />
                     </button>
                   ))}
                 </div>
@@ -256,6 +273,15 @@ const releases = (await getCollection("releases")).sort((a, b) => {
         </aside>
 
       </main>
+
+      <!-- Fullscreen image modal for ART -->
+      <div id="art-modal" class="modal modal--image" hidden>
+        <div class="modal__backdrop"></div>
+        <div class="modal__window">
+          <button type="button" class="modal__close" aria-label="Close image">✕</button>
+          <img id="art-modal-img" src="" alt="art preview" />
+        </div>
+      </div>
 
       <script type="module" src={`${BASE}js/main.js`}></script>
     </div>

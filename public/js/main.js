@@ -9,7 +9,7 @@ function typeText(el, text, speed = 18) {
   })();
 }
 
-// 1) Keyboard nudge for horizontal carousels
+// 1) Keyboard nudge for horizontal carousels (if any)
 (function(){
   const carousels = document.querySelectorAll('.carousel');
   window.addEventListener('keydown', (e) => {
@@ -95,7 +95,7 @@ function typeText(el, text, speed = 18) {
   activate(initial);
 })();
 
-// 4) Releases → folder tree + inline player + copy URL
+// 4) Releases → folder tree + inline player
 (function(){
   const pane = document.getElementById('pane-releases');
   if (!pane) return;
@@ -138,7 +138,7 @@ function typeText(el, text, speed = 18) {
     audio.play().catch(() => {});
   }
 
-  // C) Click handling for play / cover / copy (event delegation)
+  // C) Click handling for play / cover
   pane.addEventListener('click', async (e) => {
     // Any element that can play audio: track title, 'play' button, or cover with .track-play
     const playBtn = e.target.closest('.track-play, .track-playlink');
@@ -158,21 +158,6 @@ function typeText(el, text, speed = 18) {
         node?.querySelector('.tree-tracks .track-play');
       if (first) first.click();
       return;
-    }
-
-    // Copy URL
-    const copyBtn = e.target.closest('.track-copy');
-    if (copyBtn) {
-      const src = copyBtn.dataset.src;
-      if (!src) return;
-      try {
-        await navigator.clipboard.writeText(src);
-        copyBtn.textContent = 'copied';
-        setTimeout(() => { copyBtn.textContent = 'copy url'; }, 1000);
-      } catch {
-        copyBtn.textContent = 'copy failed';
-        setTimeout(() => { copyBtn.textContent = 'copy url'; }, 1200);
-      }
     }
   });
 
@@ -224,24 +209,25 @@ function typeText(el, text, speed = 18) {
   });
 })();
 
-// 7) Art gallery: main image + thumbnail strip
+// 7) Art gallery: main image + thumbnail grid + fullscreen modal
 (function(){
   const mainImg = document.getElementById('art-main');
   const metaBox = document.getElementById('art-meta');
   const thumbs  = Array.from(document.querySelectorAll('#pane-art .thumb'));
-  if (!mainImg || !thumbs.length) return;
 
-  function setMode(full){
-    mainImg.classList.toggle('is-full', full);
-  }
+  const modal      = document.getElementById('art-modal');
+  const modalImg   = document.getElementById('art-modal-img');
+  const modalClose = modal ? modal.querySelector('.modal__close') : null;
+
+  if (!mainImg || !thumbs.length) return;
 
   function setActive(i){
     const btn = thumbs[i];
     if (!btn) return;
-    const src = btn.dataset.src;
-    const title = btn.dataset.title || '';
+    const src     = btn.dataset.src;
+    const title   = btn.dataset.title || '';
     const preview = btn.dataset.preview || '';
-    const buy = btn.dataset.buy || '';
+    const buy     = btn.dataset.buy || '';
 
     // fade-out → swap → fade-in
     mainImg.style.opacity = '0';
@@ -249,9 +235,6 @@ function typeText(el, text, speed = 18) {
     mainImg.src = src;
     mainImg.alt = `${title} image`;
     mainImg.dataset.index = String(i);
-
-    // reset to fit mode on new image
-    setMode(false);
 
     // update meta (title + links)
     if (metaBox){
@@ -289,29 +272,14 @@ function typeText(el, text, speed = 18) {
     btn.addEventListener('click', () => setActive(i));
   });
 
-  // SINGLE-click to toggle fit <-> 1:1 (scrollable) mode
-  mainImg.addEventListener('click', () => {
-    const full = !mainImg.classList.contains('is-full');
-    setMode(full);
-  });
-
-  // Press "f" to toggle when Art pane is visible
-  document.addEventListener('keydown', (e) => {
-    if (e.key.toLowerCase() !== 'f') return;
-    const pane = document.getElementById('pane-art');
-    if (!pane || pane.hidden) return;
-    const full = !mainImg.classList.contains('is-full');
-    setMode(full);
-  });
-
   // type the initial title once
   const initialTitleEl = metaBox?.querySelector('.gallery__title');
   if (initialTitleEl) {
     typeText(initialTitleEl, initialTitleEl.textContent || '', 18);
   }
 
-  // keyboard left/right on the thumbnail strip
-  const listbox = document.querySelector('#pane-art .gallery__thumbs');
+  // keyboard left/right navigation over thumbs (grid-based, not row-based)
+  const listbox = document.querySelector('#pane-art .gallery__thumbgrid');
   if (listbox){
     listbox.addEventListener('keydown', (e) => {
       const idx = parseInt(mainImg.dataset.index || '0', 10);
@@ -321,4 +289,44 @@ function typeText(el, text, speed = 18) {
       if (e.key === 'End')        { e.preventDefault(); setActive(thumbs.length-1); }
     });
   }
+
+  // ===== Fullscreen modal behavior =====
+  function openModal(){
+    if (!modal || !modalImg) return;
+    modalImg.src = mainImg.src;
+    modalImg.alt = mainImg.alt || 'art preview';
+    modal.hidden = false;
+  }
+
+  function closeModal(){
+    if (!modal) return;
+    modal.hidden = true;
+  }
+
+  // Click main image to open modal
+  mainImg.addEventListener('click', openModal);
+
+  // Close via X button
+  if (modalClose) {
+    modalClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeModal();
+    });
+  }
+
+  // Close via backdrop click
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal || e.target.classList.contains('modal__backdrop')) {
+        closeModal();
+      }
+    });
+  }
+
+  // Close via Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && !modal.hidden) {
+      closeModal();
+    }
+  });
 })();

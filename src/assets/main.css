@@ -34,29 +34,38 @@ body{
 .hub-grid{
   display:grid;
   grid-template-columns: 2.4fr 1.2fr;
-  grid-template-rows: auto minmax(260px, 34vh) 1fr;
+  grid-template-rows: auto minmax(260px, 34vh) auto 1fr;
   grid-template-areas:
     "status log"
     "video  log"
+    "buy    log"
     "media  log";
   gap:12px;
-  height:100vh;      /* lock to viewport height */
+  height:100vh;
   min-height:100vh;
   padding:12px;
 }
 .area-status { grid-area: status; }
 .area-video  { grid-area: video; }
+.area-media  { grid-area: media; }
 
 /* MEDIA PANEL (bottom-left) */
 .area-media{
-  grid-area: media;
   position: relative;
   display: grid;
   align-items: stretch;
   justify-items: stretch;
   min-height: 0;
-  /* keep all overflow inside this panel */
   overflow: hidden;
+}
+
+/* BUY STRIP (between video + media) */
+.area-buy{
+  grid-area: buy;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:flex-start;
 }
 
 /* Panels */
@@ -69,6 +78,41 @@ body{
   box-shadow: 0 6px 22px rgba(0,0,0,.35),
               inset 0 0 0 1px rgba(182,255,156,0.08);
   padding:10px;
+}
+
+/* Buy buttons (CD/Vinyl/Cassette + Prints) */
+.buy-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+
+  color: #b6ff9c;
+  text-decoration:none;
+  border-bottom:none;
+
+  padding: 6px 18px;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.9), rgba(0,0,0,0.82)),
+    radial-gradient(circle at 50% 0%, rgba(182,255,156,0.20), transparent 60%);
+  border: 1px solid rgba(182,255,156,0.65);
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.6),
+    inset 0 0 0 1px rgba(182,255,156,0.12);
+  cursor: pointer;
+}
+
+.buy-button:hover{
+  color: #dfffad;
+  border-color: rgba(202,255,180,0.9);
+  box-shadow:
+    0 3px 12px rgba(0,0,0,0.75),
+    inset 0 0 0 1px rgba(202,255,180,0.35);
 }
 
 /* Video */
@@ -110,8 +154,8 @@ body{
   flex: 1 1 auto;
   position: relative;
   width: 100%;
-  height: auto;           /* let flex sizing handle it */
-  min-height: 0;          /* allow shrinking inside grid */
+  height: auto;
+  min-height: 0;
 }
 
 .area-video .embed{
@@ -123,18 +167,18 @@ body{
 }
 
 /* ==========================
-   TABS (top-right in media)
+   TABS (top-left in media)
    ========================== */
 .tabs{
   position: absolute;
   top: 10px;
-  right: 12px;              /* pin to top-right */
-  left: auto;
+  left: 12px;
+  right: auto;
   z-index: 3;
   display: flex;
   gap: 10px;
-  justify-content: flex-end;
-  align-items: center;      /* prevent height stretching */
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .tab{
@@ -149,7 +193,7 @@ body{
   font-size: 1.25rem;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  line-height: 1.1;         /* keep label tight & fixed */
+  line-height: 1.1;
 
   transition: transform .15s ease, background-color .15s ease, box-shadow .15s ease;
 
@@ -182,7 +226,7 @@ body{
 /* Pane area fills the rest below the tabs */
 .tabpanes{
   position: absolute;
-  top: 56px;                /* under tabs */
+  top: 56px;
   left: 10px;
   right: 10px;
   bottom: 10px;
@@ -207,20 +251,23 @@ body{
   .tabpanes{ top: 52px; }
 }
 
-/* ===== Art gallery (main viewer + thumbnail strip) ===== */
+/* ===== Art gallery — grid layout (preview + thumb grid) ===== */
 .gallery{
-  display:flex;
-  flex-direction:column;
+  display:grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.1fr);
   gap:10px;
   width:100%;
   height:100%;
   min-height:0;
 }
 
-/* Scroll container for zoomed/full images */
+.gallery--grid{
+  /* semantic hook if needed later */
+}
+
+/* Main CRT image area */
 .gallery__main{
   position:relative;
-  flex: 1 1 auto;
   min-height: 0;
   padding: 8px;
   border:1px solid rgba(182,255,156,0.35);
@@ -229,73 +276,43 @@ body{
     radial-gradient(circle at 50% 50%, rgba(20,40,20,.55), rgba(0,0,0,.95));
   box-shadow: inset 0 0 0 1px rgba(182,255,156,0.08);
 
-  overflow: auto;
-
   display:flex;
   align-items:center;
   justify-content:center;
-
-  /* Firefox scrollbars */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(182,255,156,0.45) rgba(0,0,0,0.4);
 }
 
-/* Chrome / WebKit scrollbars for art viewer */
-.gallery__main::-webkit-scrollbar{
-  width:10px;
-  height:10px;
-}
-.gallery__main::-webkit-scrollbar-track{
-  background: rgba(0,0,0,0.35);
-  border-radius:999px;
-}
-.gallery__main::-webkit-scrollbar-thumb{
-  background: rgba(182,255,156,0.28);
-  border-radius:999px;
-  border:2px solid rgba(0,0,0,0.85);
-  box-shadow: 0 0 6px rgba(182,255,156,0.35);
-}
-.gallery__main::-webkit-scrollbar-thumb:hover{
-  background: rgba(200,255,180,0.4);
-}
-
-/* Image itself */
+/* Image itself: always fully visible, centered */
 .gallery__main-img{
   display:block;
-  flex: 0 0 auto;       /* don't shrink: allow overflow for scrollbars */
-  cursor: zoom-in;
-  transition: opacity .18s ease;
-  width: auto;
-  height: auto;
-  max-width: 100%;      /* "fit" mode by default */
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 6px;
+  max-width:100%;
+  max-height:100%;
+  width:auto;
+  height:auto;
+  min-width:0;
+  min-height:0;
+  object-fit:contain;
+  border-radius:6px;
+  margin:0 auto;
+  align-self:center;
+  cursor: pointer; /* click to open modal */
 }
 
-/* "Full" mode – natural size, scroll inside .gallery__main */
-.gallery__main-img.is-full{
-  max-width: none;
-  max-height: none;
-  cursor: zoom-out;
-}
-
-/* Thumbnails strip */
-.gallery__thumbs{
+/* Thumbnail grid (replaces horizontal strip) */
+.gallery__thumbgrid{
   flex: 0 0 auto;
-  display:flex;
-  align-items:center;
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap:8px;
   padding:6px;
   border:1px solid rgba(182,255,156,0.35);
   border-radius:10px;
   background: rgba(0,0,0,0.35);
-  overflow-x:auto;
-  scroll-snap-type: x mandatory;
+  overflow-y:auto;
+  align-content:flex-start;
 }
 
+/* Thumbnail button styling */
 .thumb{
-  scroll-snap-align:start;
   background: transparent;
   border: 1px dashed rgba(182,255,156,0.35);
   border-radius: 8px;
@@ -342,7 +359,6 @@ body{
   justify-content: flex-start;
   min-height: 0;
 
-  /* single scroll container for tree + audio dock */
   overflow: auto;
   padding: 4px 4px 0 4px;
   box-sizing: border-box;
@@ -409,14 +425,14 @@ body{
 }
 
 /* =====================================
-   UNIFIED LOOK FOR DOWNLOAD / PLAY / COPY
+   UNIFIED LOOK FOR DOWNLOAD / PLAY
    ===================================== */
 
 .track-action {
   background: none;
   border: none;
   padding: 0;
-  margin: 0;
+  margin: 0 0 0 4px;
   cursor: pointer;
 
   font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
@@ -496,7 +512,7 @@ body{
   display:flex;
   flex-direction:column;
   gap:12px;
-  min-height:0;     /* allow column to shrink inside grid row */
+  min-height:0;
 }
 
 /* Inbox */
@@ -634,12 +650,12 @@ body{
 }
 
 /* Modal */
-.modal{ position:fixed; inset:0; z-index:1000 }
+.modal{ position:fixed; inset:0; z-index:1000; }
 .modal__backdrop{
   position:absolute;
   inset:0;
-  background:rgba(0,0,0,.55);
-  backdrop-filter:blur(2px);
+  background:rgba(0,0,0,.7);
+  backdrop-filter:blur(3px);
 }
 .modal__window{
   position:absolute;
@@ -684,19 +700,120 @@ body{
 }
 .btn:hover{ background:rgba(182,255,156,.2) }
 
-/* Mobile */
+/* Image-specific fullscreen modal variant */
+.modal--image .modal__window{
+  max-width: 96vw;
+  max-height: 96vh;
+  width: auto;
+  height: auto;
+  padding: 14px 18px 16px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(0,0,0,.75), rgba(0,0,0,.98) 85%);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal--image img{
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 10px;
+  box-shadow:
+    0 0 22px rgba(0,0,0,0.9),
+    0 0 18px rgba(182,255,156,0.25);
+}
+
+/* Close button inside modal */
+.modal__close{
+  position:absolute;
+  top:8px;
+  right:10px;
+  background:transparent;
+  border:0;
+  color:#caff9e;
+  font-size:18px;
+  cursor:pointer;
+  padding:2px 6px;
+}
+.modal__close:hover{
+  color:#ffffff;
+}
+
+/* Mobile layout tweaks */
 @media (max-width: 960px){
   .hub-grid{
     grid-template-columns:1fr;
-    grid-template-rows:auto auto auto;
+    grid-template-rows:auto auto auto auto;
     grid-template-areas:
       "video"
+      "buy"
       "media"
       "log";
     min-height:unset;
     height:auto;
   }
   .area-audio .embed--sc{ height:200px }
+}
+
+@media (max-width: 640px){
+  .hub-shell{
+    margin: 4px;
+    padding: 8px;
+    border-radius: 18px;
+  }
+
+  .hub-grid{
+    gap: 8px;
+  }
+
+  .panel{
+    padding: 8px;
+    border-radius: 12px;
+  }
+
+  .area-video .embed{
+    aspect-ratio: 16 / 9;
+    height: auto;
+  }
+
+  .area-media{
+    min-height: 0;
+    height: 55vh;
+  }
+
+  .gallery{
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1.3fr) minmax(0, 1fr);
+  }
+
+  .gallery__thumbgrid{
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+
+  .thumb img{
+    width: 72px;
+    height: 72px;
+  }
+
+  .gallery__meta{
+    font-size: 13px;
+    padding: 6px 8px;
+    max-width: 86%;
+  }
+
+  .area-buy{
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .buy-button{
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    padding: 8px 14px;
+    font-size: 11px;
+  }
 }
 
 /* =============== MUTHR CHASSIS + CRT FINISH =============== */
