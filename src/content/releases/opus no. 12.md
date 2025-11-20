@@ -1,13 +1,13 @@
 ---
 title: "Opus No. 12"
 cover: "images/opusno12.jpg"
-readme: "releases/opusno12_README.txt"
+readme: "releases/opus_no-12_README.txt"
 tracks:
-  - "releases/thegloryoftheday.mp3"
-  - "releases/93greensable.mp3"
-  - "releases/brooklandlowend.mp3"
-  - "releases/showtimenightmission.mp3"
-  - "releases/gyongyoscellars.mp3"
-  - "releases/vistaserbal.mp3"
-  - "releases/yellowhousesturgeon.mp3"
+  - "releases/the glory of the day.mp3" 
+  - "releases/_93 green sable.mp3"
+  - "releases/brookland low end.mp3"
+  - "releases/showtime night mission.mp3"
+  - "releases/gyöngyös cellars.mp3"
+  - "releases/vista serbal.mp3"
+  - "releases/yellow house sturgeon.mp3"
 ---

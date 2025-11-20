@@ -1,5 +1,5 @@
 ---
-date: "2025-11-13"
+date: "1010-11-00"
 text: |
 
   THE MISTAKEN INVALID: I dreamt that an angel stood by me and that at last I should be free of this hateful place and its

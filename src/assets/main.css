@@ -297,7 +297,8 @@ body{
   cursor: pointer; /* click to open modal */
 }
 
-/* Thumbnail grid (replaces horizontal strip) */
+/* Thumbnail grid (desktop + mobile) */
+.gallery__thumbs,
 .gallery__thumbgrid{
   flex: 0 0 auto;
   display:grid;
@@ -309,6 +310,7 @@ body{
   background: rgba(0,0,0,0.35);
   overflow-y:auto;
   align-content:flex-start;
+  max-height: 220px;
 }
 
 /* Thumbnail button styling */
@@ -496,6 +498,49 @@ body{
   text-overflow: ellipsis;
 }
 
+/* SoundCloud-ish waveform scrubber */
+.waveform{
+  position: relative;
+  height: 28px;
+  border-radius: 999px;
+  background:
+    repeating-linear-gradient(
+      to right,
+      rgba(182,255,156,0.28) 0px,
+      rgba(182,255,156,0.28) 2px,
+      rgba(0,0,0,0.95) 3px,
+      rgba(0,0,0,0.95) 6px
+    );
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 0 1px rgba(0,0,0,0.85),
+    0 0 8px rgba(0,0,0,0.75);
+  cursor: pointer;
+  margin: 4px 0 8px;
+}
+
+.waveform:hover{
+  box-shadow:
+    inset 0 0 0 1px rgba(182,255,156,0.35),
+    0 0 10px rgba(182,255,156,0.35);
+}
+
+/* Progress overlay */
+.waveform__progress{
+  position:absolute;
+  inset:0;
+  width:0%;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(202,255,158,0.85),
+      rgba(140,255,200,0.85)
+    );
+  mix-blend-mode: screen;
+  pointer-events:none;
+  transition: width .08s linear;
+}
+
 /* Audio element fills the dock width */
 #audio-player,
 #rip-audio{
@@ -621,6 +666,50 @@ body{
   scrollbar-color: rgba(182,255,156,0.45) rgba(0,0,0,0.4);
 }
 
+/* ============================================================
+   MATCH ART PANEL SCROLLBARS TO LOG PANEL STYLE
+   (applies to: #pane-art, .gallery__main, .gallery__thumbgrid)
+   ============================================================ */
+
+/* Firefox */
+#pane-art,
+#pane-art .gallery__main,
+#pane-art .gallery__thumbgrid {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(182,255,156,0.45) rgba(0,0,0,0.4);
+}
+
+/* WebKit / Chrome / Edge */
+#pane-art::-webkit-scrollbar,
+#pane-art .gallery__main::-webkit-scrollbar,
+#pane-art .gallery__thumbgrid::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+#pane-art::-webkit-scrollbar-track,
+#pane-art .gallery__main::-webkit-scrollbar-track,
+#pane-art .gallery__thumbgrid::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.35);
+  border-radius: 999px;
+}
+
+#pane-art::-webkit-scrollbar-thumb,
+#pane-art .gallery__main::-webkit-scrollbar-thumb,
+#pane-art .gallery__thumbgrid::-webkit-scrollbar-thumb {
+  background: rgba(182,255,156,0.28);
+  border-radius: 999px;
+  border: 2px solid rgba(0,0,0,0.85);
+  box-shadow: 0 0 6px rgba(182,255,156,0.35);
+}
+
+#pane-art::-webkit-scrollbar-thumb:hover,
+#pane-art .gallery__main::-webkit-scrollbar-thumb:hover,
+#pane-art .gallery__thumbgrid::-webkit-scrollbar-thumb:hover {
+  background: rgba(200,255,180,0.4);
+}
+
+
 /* Log entry styling */
 .log-entry{
   border-bottom:1px dashed rgba(182,255,156,0.15);
@@ -700,8 +789,31 @@ body{
 }
 .btn:hover{ background:rgba(182,255,156,.2) }
 
-/* Image-specific fullscreen modal variant */
+/* Image-specific fullscreen modal variant + animations */
+.modal--image {
+  /* container mainly used to scope transitions */
+}
+
+/* Backdrop fade */
+.modal--image .modal__backdrop{
+  opacity: 0;
+  transition: opacity .18s ease-out;
+}
+.modal--image.is-open .modal__backdrop{
+  opacity: 1;
+}
+.modal--image.is-closing .modal__backdrop{
+  opacity: 0;
+}
+
+/* Zoom/fade for the window */
 .modal--image .modal__window{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform: translate(-50%, -50%) scale(0.96);
+  opacity: 0;
+
   max-width: 96vw;
   max-height: 96vh;
   width: auto;
@@ -713,6 +825,20 @@ body{
   display: flex;
   align-items: center;
   justify-content: center;
+
+  transition:
+    opacity .18s ease-out,
+    transform .18s ease-out;
+}
+
+.modal--image.is-open .modal__window{
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.modal--image.is-closing .modal__window{
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.96);
 }
 
 .modal--image img{
@@ -740,12 +866,14 @@ body{
   color:#ffffff;
 }
 
+
 /* Mobile layout tweaks */
 @media (max-width: 960px){
   .hub-grid{
     grid-template-columns:1fr;
-    grid-template-rows:auto auto auto auto;
+    grid-template-rows:auto auto auto auto auto;
     grid-template-areas:
+      "status"
       "video"
       "buy"
       "media"
@@ -753,7 +881,14 @@ body{
     min-height:unset;
     height:auto;
   }
-  .area-audio .embed--sc{ height:200px }
+
+  .area-video .wrap{
+    min-height: 220px;
+  }
+
+  .area-audio .embed--sc{
+    height:180px;
+  }
 }
 
 @media (max-width: 640px){
@@ -787,6 +922,7 @@ body{
     grid-template-rows: minmax(0, 1.3fr) minmax(0, 1fr);
   }
 
+  .gallery__thumbs,
   .gallery__thumbgrid{
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   }
