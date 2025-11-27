@@ -46,8 +46,14 @@ const releases = releasesRaw.sort((a, b) => {
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@300&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Teko:wght@300&display=swap"
+      rel="stylesheet"
+    >
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&display=swap"
+      rel="stylesheet"
+    >
 
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
@@ -69,7 +75,9 @@ const releases = releasesRaw.sort((a, b) => {
 
         <!-- STATUS -->
         <section class="panel shell-header area-status">
-          <div class="status-label">/user/.srj> | ig/yt: @dotsrj | dotsrj11001010(at)gmail.com</div>
+          <div class="status-label">
+            /user/.srj> | ig/yt: @dotsrj | dotsrj11001010(at)gmail.com
+          </div>
         </section>
 
         <!-- VIDEO -->
@@ -80,27 +88,30 @@ const releases = releasesRaw.sort((a, b) => {
               src="https://www.youtube.com/embed/videoseries?si=HfA2Jn3J9kAYrbWW&amp;list=PLLdCPjWSK-Y7yGM9dKSzx8jamaFgGpi08"
               loading="lazy"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowfullscreen>
+              allowfullscreen
+            >
             </iframe>
           </div>
         </section>
 
-        <!-- BUY STRIP (CD/Vinyl/Cassette + Prints) -->
+        <!-- BUY STRIP (CD/Vinyl + Prints) -->
         <section class="panel area-buy" aria-label="purchase links">
           <a
-            href="#"
+            href="https://payhip.com/dotsrj/collection/cd-vinyl"
             class="buy-button"
             target="_blank"
             rel="noopener"
+            data-role="buy-music"
           >
-            buy music (cd / vinyl / cassette)
+            buy music (cd \ vinyl)
           </a>
 
           <a
-            href="#"
+            href="https://payhip.com/dotsrj/collection/prints"
             class="buy-button"
             target="_blank"
             rel="noopener"
+            data-role="buy-prints"
           >
             buy prints
           </a>
@@ -141,8 +152,7 @@ const releases = releasesRaw.sort((a, b) => {
                               alt={`${r.data.title} cover`}
                               data-src={firstTrack ? `${BASE}${firstTrack}` : undefined}
                               data-title={firstTitle}
-                              style="max-width:220px;border-radius:8px;border:1px solid rgba(182,255,156,0.35)"
-                            />
+                              style="max-width:220px;border-radius:8px;border:1px solid rgba(182,255,156,0.35)" />
                           </div>
                         )}
 
@@ -284,7 +294,8 @@ const releases = releasesRaw.sort((a, b) => {
               loading="lazy"
               allow="autoplay"
               referrerpolicy="no-referrer"
-              src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%253Aplaylists%253A1915958051&amp;color=%23ff5500&amp;auto_play=true&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=true&amp;visual=true">
+              src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%253Aplaylists%253A1915958051&amp;color=%23ff5500&amp;auto_play=true&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=true&amp;visual=true"
+            >
             </iframe>
           </section>
 

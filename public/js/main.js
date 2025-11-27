@@ -101,16 +101,41 @@ function typeText(el, text, speed = 18) {
   activate(initial);
 })();
 
-// 4) Releases → folder tree + inline player + copy URL + waveform scrubber
+// 4) Releases → folder tree + inline player + waveform scrubber + auto-scroll-on-open
 (function(){
   const pane  = document.getElementById('pane-releases');
   if (!pane) return;
+
+  // helper: when a folder is opened near the bottom, scroll just enough to reveal it
+  function ensureFolderVisible(node){
+    if (!node || !pane) return;
+
+    // Use requestAnimationFrame so layout is updated after expanding
+    requestAnimationFrame(() => {
+      const containerRect = pane.getBoundingClientRect();
+      const nodeRect = node.getBoundingClientRect();
+
+      // How much of the node's bottom is cut off relative to the container?
+      const overflowBottom = nodeRect.bottom - containerRect.bottom;
+
+      // If overflowBottom > 0, it's clipped. Scroll by that amount plus a small margin.
+      if (overflowBottom > 0) {
+        const margin = 12; // small breathing room so it isn't glued to the edge
+        pane.scrollBy({
+          top: overflowBottom + margin,
+          left: 0,
+          behavior: 'smooth'
+        });
+      }
+    });
+  }
 
   // A) Toggle folders (use :scope to target only this node's contents)
   pane.addEventListener('click', (e) => {
     const toggle = e.target.closest('.tree-toggle');
     if (!toggle) return;
 
+    const node     = toggle.closest('.tree-node');
     const contents = toggle.parentElement?.querySelector(':scope > .tree-contents');
     const glyph    = toggle.querySelector('.tree-glyph');
     if (!contents) return;
@@ -119,6 +144,11 @@ function typeText(el, text, speed = 18) {
     contents.hidden = !willOpen;
     toggle.setAttribute('aria-expanded', String(willOpen));
     if (glyph) glyph.textContent = willOpen ? '▾' : '▸';
+
+    // NEW: if we just opened this folder, make sure it isn't clipped at the bottom
+    if (willOpen && node) {
+      ensureFolderVisible(node);
+    }
   });
 
   // B) Shared inline player dock
@@ -179,7 +209,7 @@ function typeText(el, text, speed = 18) {
     audio.addEventListener('seeked', updateWaveform);
   }
 
-  // D) Click handling for play / cover / copy (event delegation)
+  // D) Click handling for play / cover
   pane.addEventListener('click', async (e) => {
     // Any element that can play audio: track title, 'play' button, or cover with .track-play
     const playBtn = e.target.closest('.track-play, .track-playlink');
@@ -200,8 +230,6 @@ function typeText(el, text, speed = 18) {
       if (first) first.click();
       return;
     }
-
-    // (Copy URL feature was removed per latest design)
   });
 
   // E) Keyboard support: toggle & play via Enter / Space
