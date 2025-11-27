@@ -251,7 +251,20 @@ function typeText(el, text, speed = 18) {
       e.target.click();
     }
   });
+  // F) Auto-expand the first release folder on initial load
+  const firstToggle = pane.querySelector('.tree-node .tree-toggle');
+  if (firstToggle) {
+    const contents = firstToggle.parentElement.querySelector(':scope > .tree-contents');
+    const glyph    = firstToggle.querySelector('.tree-glyph');
+
+    if (contents) {
+      contents.hidden = false;               // show the contents
+      firstToggle.setAttribute('aria-expanded', 'true');
+      if (glyph) glyph.textContent = '▾';    // change caret to "open"
+    }
+  }
 })();
+
 
 // 5) Entry log typewriter (entries type, but do NOT auto-scroll to bottom)
 (function(){

@@ -242,7 +242,7 @@ body{
 /* Pane area fills the rest below the tabs */
 .tabpanes{
   position: absolute;
-  top: 56px;
+  top: 30px;
   left: 10px;
   right: 10px;
   bottom: 10px;
@@ -264,7 +264,7 @@ body{
 /* Optional: tame sizes a bit on narrow screens */
 @media (max-width: 520px){
   .tab{ font-size: 1.1rem; padding: 7px 14px; }
-  .tabpanes{ top: 52px; }
+  .tabpanes{ top: 28px; }
 }
 
 /* ===== Art gallery — grid layout (preview + thumb grid) ===== */
@@ -422,7 +422,7 @@ body{
 }
 
 /* Tracks list */
-.tree-tracks li{ list-style: decimal; }
+.tree-tracks li{ list-style: none; }
 
 .track-playlink,
 .track-play{
