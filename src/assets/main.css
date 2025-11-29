@@ -52,9 +52,10 @@ body{
 /* MEDIA PANEL (bottom-left) */
 .area-media{
   position: relative;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   align-items: stretch;
-  justify-items: stretch;
+  justify-content: flex-start;
   min-height: 0;
   overflow: hidden;
 }
@@ -147,17 +148,17 @@ body{
 /* Header bar directly above the video player */
 .video-header{
   flex: 0 0 auto;
-  margin-bottom: 6px;
+  margin: 2px 2px 8px 2px;
   padding: 6px 10px;
   border-radius: 10px;
   font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
   font-size: 13px;
   letter-spacing: .02em;
-  color: #000000;
+  color: #9effc7;
   background:
     linear-gradient(180deg, #f6f4ea, #efece1 60%, #e7e3d6),
     repeating-linear-gradient(135deg, rgba(0,0,0,0.02) 0 2px, rgba(0,0,0,0.015) 2px 4px);
-  border: 1px solid rgba(60,60,60,0.25);
+  border: 1px solid rgba(60, 60, 60, 0.25);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.35),
     inset 0 -1px 0 rgba(0,0,0,.08),
@@ -182,19 +183,28 @@ body{
   aspect-ratio: auto;
 }
 
+/* ======================================================
+   MEDIA HEADER: tabs on the left, inline player on right
+   ====================================================== */
+.media-header{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
 /* ==========================
-   TABS (top-left in media)
+   TABS
    ========================== */
 .tabs{
-  position: absolute;
-  top: 10px;
-  left: 12px;
-  right: auto;
+  position: static;
   z-index: 3;
   display: flex;
   gap: 10px;
   justify-content: flex-start;
   align-items: center;
+  flex: 0 0 auto; 
 }
 
 .tab{
@@ -239,16 +249,12 @@ body{
     0 0 0 3px rgba(182,255,156,0.20);
 }
 
-/* Pane area fills the rest below the tabs */
+/* Pane area fills the rest below the header */
 .tabpanes{
-  position: absolute;
-  top: 30px;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
-  z-index: 1;
-  width: auto;
-  height: auto;
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
   max-width: none;
   max-height: none;
   transform: none;
@@ -263,8 +269,10 @@ body{
 
 /* Optional: tame sizes a bit on narrow screens */
 @media (max-width: 520px){
-  .tab{ font-size: 1.1rem; padding: 7px 14px; }
-  .tabpanes{ top: 28px; }
+  .tab{
+    font-size: 1.1rem;
+    padding: 7px 14px;
+  }
 }
 
 /* ===== Art gallery — grid layout (preview + thumb grid) ===== */
@@ -484,14 +492,13 @@ body{
   cursor: pointer;
 }
 
-/* Sticky inline audio dock anchored visually to bottom of releases pane */
+/* Compact inline audio dock next to tabs */
 .audio-dock{
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin-top: 10px;
-  padding: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+
+  padding: 8px 10px;
   border: 2px solid rgba(202,255,158,0.9);
   border-radius: 12px;
   background: rgba(0,0,0,0.85);
@@ -499,34 +506,101 @@ body{
     0 0 0 1px rgba(182,255,156,0.4) inset,
     0 0 18px rgba(182,255,156,0.35);
   backdrop-filter: blur(2px);
-  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow .2s ease, background-color .2s ease, transform .15s ease;
+}
+
+/* EQ-ish glow when playing */
+.audio-dock.is-playing{
+  background:
+    radial-gradient(circle at 50% 0%, rgba(20,60,30,0.9), rgba(0,0,0,0.96));
+  box-shadow:
+    0 0 0 1px rgba(182,255,156,0.65) inset,
+    0 0 24px rgba(182,255,156,0.55);
+}
+
+/* Playback chips row */
+.rip-controls{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-bottom:4px;
+  margin-left:auto; /* push chips to top-right of dock */
+}
+
+/* Top row inside the audio dock: title on left, chips on right */
+.rip-header{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+/* Label text that flexes and truncates before the chips */
+.rip-label{
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rip-chip{
+  background: linear-gradient(180deg, rgba(182,255,156,0.26), rgba(0,0,0,0.9));
+  border-radius: 999px;
+  border: 1px solid rgba(182,255,156,0.75);
+  padding: 3px 10px;
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #caff9e;
+  cursor:pointer;
+  text-align:center;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.15) inset,
+    0 -1px 0 rgba(0,0,0,0.75) inset,
+    0 0 10px rgba(0,0,0,0.8);
+  transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease, border-color .12s ease;
+}
+
+.rip-chip:hover{
+  transform: translateY(-1px);
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.9),
+    0 0 0 1px rgba(182,255,156,0.3) inset;
+}
+
+.rip-chip:active{
+  transform: translateY(0);
+  box-shadow: 0 0 0 1px rgba(182,255,156,0.45) inset;
+}
+
+.rip-chip--play{
+  min-width: 70px;
 }
 
 /* Label text inside the dock */
 .audio-title,
-#rip-label{
+#rip-label,
+.rip-label{
   font: 12px/1.3 "IBM Plex Mono", ui-monospace, Consolas, monospace;
   color:#caff9e;
-  margin-bottom: 6px;
+  margin-bottom: 0;
   opacity:.9;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* SoundCloud-ish waveform scrubber */
+/* SoundCloud-ish waveform scrubber (canvas + overlay) */
 .waveform{
   position: relative;
   height: 28px;
   border-radius: 999px;
-  background:
-    repeating-linear-gradient(
-      to right,
-      rgba(182,255,156,0.28) 0px,
-      rgba(182,255,156,0.28) 2px,
-      rgba(0,0,0,0.95) 3px,
-      rgba(0,0,0,0.95) 6px
-    );
+  background: rgba(0,0,0,0.95);
   overflow: hidden;
   box-shadow:
     inset 0 0 0 1px rgba(0,0,0,0.85),
@@ -541,6 +615,15 @@ body{
     0 0 10px rgba(182,255,156,0.35);
 }
 
+/* Canvas that holds actual peaks */
+.waveform canvas{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+}
+
 /* Progress overlay */
 .waveform__progress{
   position:absolute;
@@ -549,7 +632,7 @@ body{
   background:
     linear-gradient(
       90deg,
-      rgba(202,255,158,0.85),
+      rgba(202,255,158,0.55),
       rgba(140,255,200,0.85)
     );
   mix-blend-mode: screen;
@@ -557,11 +640,11 @@ body{
   transition: width .08s linear;
 }
 
-/* Audio element fills the dock width */
+/* Audio element is hidden (chips + waveform are the UI) */
 #audio-player,
 #rip-audio{
   width:100%;
-  display:block;
+  display:none;
 }
 
 /* ===========================
@@ -597,17 +680,6 @@ body{
 .inbox-row input::placeholder{
   font-style: italic;
   opacity: 0.7;
-}
-
-/* SoundCloud */
-.area-audio{
-  flex: 0 0 auto;
-}
-.area-audio .embed--sc{
-  width:100%;
-  height:166px;
-  border:none;
-  display:block;
 }
 
 /* Log panel: fills remaining height of the right column */
@@ -725,7 +797,6 @@ body{
   background: rgba(200,255,180,0.4);
 }
 
-
 /* Log entry styling */
 .log-entry{
   border-bottom:1px dashed rgba(182,255,156,0.15);
@@ -735,6 +806,11 @@ body{
 }
 .log-entry:last-child{
   border-bottom:none;
+}
+
+/* Preserve line breaks from log text */
+.log-entry .typed{
+  white-space: pre-wrap;
 }
 
 .badge{
@@ -752,6 +828,29 @@ body{
   font-weight: 300;
   letter-spacing: .02em;
   color: rgba(170, 255, 190, 0.88);
+}
+
+/* ============================================================
+   SAFE IMAGE SIZING FOR ENTRY LOG
+   ============================================================ */
+
+.log-entry img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 360px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid rgba(182,255,156,0.25);
+  box-shadow: 0 0 0 1px rgba(182,255,156,0.08) inset;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+@media (max-width: 520px){
+  .log-entry img {
+    max-height: 240px;
+  }
 }
 
 /* Modal */
@@ -882,7 +981,6 @@ body{
   color:#ffffff;
 }
 
-
 /* Mobile layout tweaks */
 @media (max-width: 960px){
   .hub-grid{
@@ -900,10 +998,6 @@ body{
 
   .area-video .wrap{
     min-height: 220px;
-  }
-
-  .area-audio .embed--sc{
-    height:180px;
   }
 }
 
@@ -931,6 +1025,15 @@ body{
   .area-media{
     min-height: 0;
     height: 55vh;
+  }
+
+  .media-header{
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .audio-dock{
+    max-width: 100%;
   }
 
   .gallery{
@@ -1099,25 +1202,6 @@ body::after{
   animation: tw-blink 1s steps(1,end) infinite;
 }
 @keyframes tw-blink { 50% { opacity: 0; } }
-
-/* Shell heading above the video */
-.video-header{
-  margin: 2px 2px 8px 2px;
-  padding: 6px 10px;
-  border-radius: 10px;
-  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
-  font-size: 13px;
-  letter-spacing: .02em;
-  color: #9effc7;
-  background:
-    linear-gradient(180deg, #f6f4ea, #efece1 60%, #e7e3d6),
-    repeating-linear-gradient(135deg, rgba(0,0,0,0.02) 0 2px, rgba(0,0,0,0.015) 2px 4px);
-  border: 1px solid rgba(60, 60, 60, 0.25);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.35),
-    inset 0 -1px 0 rgba(0,0,0,.08),
-    0 4px 12px rgba(0,0,0,.25);
-}
 
 /* ===========================
    STATUS / NAMEPLATE BOX

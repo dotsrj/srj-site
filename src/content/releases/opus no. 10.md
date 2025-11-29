@@ -11,7 +11,7 @@ tracks:
   - "releases/sappi fine paper.mp3"
   - "releases/fifteen fifty nelson.mp3"
   - "releases/e tharg.mp3"
-  - "releases/frost corporate.mp3"
+  - "releases/frosty corporate.mp3"
   - "releases/golden saucer.mp3"
   - "releases/richard g retreiver.mp3"
   - "releases/inflatable orca.mp3"

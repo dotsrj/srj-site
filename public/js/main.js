@@ -63,6 +63,8 @@ function typeText(el, text, speed = 18) {
     art:      document.getElementById('pane-art')
   };
 
+  const dock = document.getElementById('release-inline-player');
+
   function activate(name){
     // tabs
     tabs.forEach(b => {
@@ -79,11 +81,12 @@ function typeText(el, text, speed = 18) {
       el.hidden = !show;
     });
 
-    // announce activation
-    document.dispatchEvent(new CustomEvent('tab-activated', { detail: { name } }));
+    // dock only when releases is active
+    if (dock) {
+      dock.hidden = name !== 'releases';
+    }
   }
 
-  // listeners
   tabs.forEach(btn => {
     btn.addEventListener('click', () => activate(btn.dataset.tab));
     btn.addEventListener('keydown', (e) => {
@@ -96,70 +99,51 @@ function typeText(el, text, speed = 18) {
     });
   });
 
-  // initial
   const initial = tabs.find(b => b.classList.contains('is-active'))?.dataset.tab || 'releases';
   activate(initial);
 })();
 
-// 4) Releases → folder tree + inline player + waveform scrubber + auto-scroll-on-open
+// 4) Releases → folder tree + inline player + real waveform + playlist controls
 (function(){
   const pane  = document.getElementById('pane-releases');
   if (!pane) return;
 
-  // helper: when a folder is opened near the bottom, scroll just enough to reveal it
-  function ensureFolderVisible(node){
-    if (!node || !pane) return;
+  const dock       = document.getElementById('release-inline-player');
+  const audio      = document.getElementById('rip-audio');
+  const label      = document.getElementById('rip-label');
+  const wave       = document.getElementById('rip-wave');
+  const waveProg   = document.getElementById('rip-wave-progress');
+  const waveCanvas = document.getElementById('rip-wave-canvas');
+  const waveCtx    = waveCanvas ? waveCanvas.getContext('2d') : null;
+  const btnPrev    = document.getElementById('rip-prev');
+  const btnToggle  = document.getElementById('rip-toggle');
+  const btnNext    = document.getElementById('rip-next');
 
-    // Use requestAnimationFrame so layout is updated after expanding
-    requestAnimationFrame(() => {
-      const containerRect = pane.getBoundingClientRect();
-      const nodeRect = node.getBoundingClientRect();
+  const AudioCtx = window.AudioContext || window.webkitAudioContext || null;
+  const audioCtx = AudioCtx ? new AudioCtx() : null;
 
-      // How much of the node's bottom is cut off relative to the container?
-      const overflowBottom = nodeRect.bottom - containerRect.bottom;
+  let trackList = [];
+  let currentIndex = -1;
+  let waveformPreloaded = false;
 
-      // If overflowBottom > 0, it's clipped. Scroll by that amount plus a small margin.
-      if (overflowBottom > 0) {
-        const margin = 12; // small breathing room so it isn't glued to the edge
-        pane.scrollBy({
-          top: overflowBottom + margin,
-          left: 0,
-          behavior: 'smooth'
-        });
-      }
-    });
+  // Cache of peaks per src
+  const peakCache = new Map();
+  let currentPeaks = null;
+
+  function buildTrackList(){
+    // Use the "\ play" chips as the canonical list so order is stable
+    trackList = Array.from(pane.querySelectorAll('.track-play'));
   }
 
-  // A) Toggle folders (use :scope to target only this node's contents)
-  pane.addEventListener('click', (e) => {
-    const toggle = e.target.closest('.tree-toggle');
-    if (!toggle) return;
+  function setPlayingVisual(isPlaying){
+    if (!dock || !btnToggle) return;
+    dock.classList.toggle('is-playing', isPlaying);
+    btnToggle.textContent = isPlaying ? 'pause' : 'play';
+    btnToggle.setAttribute('aria-pressed', String(isPlaying));
+  }
 
-    const node     = toggle.closest('.tree-node');
-    const contents = toggle.parentElement?.querySelector(':scope > .tree-contents');
-    const glyph    = toggle.querySelector('.tree-glyph');
-    if (!contents) return;
-
-    const willOpen = contents.hasAttribute('hidden');
-    contents.hidden = !willOpen;
-    toggle.setAttribute('aria-expanded', String(willOpen));
-    if (glyph) glyph.textContent = willOpen ? '▾' : '▸';
-
-    // NEW: if we just opened this folder, make sure it isn't clipped at the bottom
-    if (willOpen && node) {
-      ensureFolderVisible(node);
-    }
-  });
-
-  // B) Shared inline player dock
-  const dock        = document.getElementById('release-inline-player');
-  const audio       = document.getElementById('rip-audio');
-  const label       = document.getElementById('rip-label');
-  const wave        = document.getElementById('rip-wave');
-  const waveProg    = document.getElementById('rip-wave-progress');
-
-  function updateWaveform(){
-    if (!audio || !wave || !waveProg) return;
+  function updateWaveformProgress(){
+    if (!audio || !waveProg) return;
     const dur = audio.duration;
     if (!dur || !isFinite(dur) || dur <= 0) {
       waveProg.style.width = '0%';
@@ -169,28 +153,154 @@ function typeText(el, text, speed = 18) {
     waveProg.style.width = pct + '%';
   }
 
-  function mountPlayer(afterEl, src, title){
-    if (!dock || !audio || !label || !src) return;
+  function drawPeaks(peaks){
+    if (!wave || !waveCanvas || !waveCtx || !peaks || !peaks.length) return;
 
-    // Set audio + label
-    audio.src = src;
-    label.textContent = title || (src.split('/').pop() || 'audio');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = wave.getBoundingClientRect();
+    const width = Math.max(10, rect.width) * dpr;
+    const height = Math.max(10, rect.height) * dpr;
 
-    // Move dock right after the clicked <li> (or element itself)
-    const hostLi = afterEl.closest('li') || afterEl;
-    hostLi.insertAdjacentElement('afterend', dock);
+    waveCanvas.width = width;
+    waveCanvas.height = height;
+    waveCanvas.style.width = rect.width + 'px';
+    waveCanvas.style.height = rect.height + 'px';
 
-    // Show dock
-    dock.hidden = false;
+    waveCtx.clearRect(0, 0, width, height);
 
-    // reset waveform
-    updateWaveform();
+    const barCount = peaks.length;
+    const barWidth = width / barCount;
+    const midY = height / 2;
+    const maxBarHeight = height * 0.9;
 
-    // Try to play
-    audio.play().catch(() => {});
+    waveCtx.fillStyle = 'rgba(180,255,190,0.9)';
+
+    for (let i = 0; i < barCount; i++) {
+      const v = peaks[i];
+      const h = Math.max(1, v * maxBarHeight);
+      const x = i * barWidth;
+      const y = midY - h / 2;
+      waveCtx.fillRect(x, y, Math.max(1, barWidth * 0.7), h);
+    }
   }
 
-  // C) Waveform click → seek
+  async function computePeaks(src){
+    if (!audioCtx || !src) return null;
+
+    if (peakCache.has(src)) {
+      return peakCache.get(src);
+    }
+
+    try {
+      const res = await fetch(src);
+      const buf = await res.arrayBuffer();
+      const decoded = await audioCtx.decodeAudioData(buf);
+      const channelData = decoded.getChannelData(0);
+
+      const sampleCount = channelData.length;
+      const buckets = 220;
+      const samplesPerBucket = Math.max(1, Math.floor(sampleCount / buckets));
+      const peaks = new Array(buckets);
+      let globalMax = 0;
+
+      for (let i = 0; i < buckets; i++) {
+        const start = i * samplesPerBucket;
+        const end = Math.min(start + samplesPerBucket, sampleCount);
+        let peak = 0;
+        for (let j = start; j < end; j++) {
+          const v = Math.abs(channelData[j]);
+          if (v > peak) peak = v;
+        }
+        peaks[i] = peak;
+        if (peak > globalMax) globalMax = peak;
+      }
+
+      if (globalMax > 0) {
+        for (let i = 0; i < peaks.length; i++) {
+          peaks[i] = peaks[i] / globalMax;
+        }
+      }
+
+      peakCache.set(src, peaks);
+      return peaks;
+    } catch (err) {
+      console.error('waveform decode failed', err);
+      return null;
+    }
+  }
+
+  async function ensurePeaksForSrc(src){
+    if (!src) return;
+    const peaks = await computePeaks(src);
+    if (!peaks) return;
+    currentPeaks = peaks;
+    drawPeaks(peaks);
+  }
+
+  // Pre-draw waveform for the first track without touching audio.src
+  function preloadFirstWaveform(){
+    if (waveformPreloaded) return;
+    if (!trackList.length) buildTrackList();
+    if (!trackList.length) return;
+
+    const firstBtn = trackList[0];
+    if (!firstBtn) return;
+
+    const src = firstBtn.dataset.src;
+    if (!src) return;
+
+    waveformPreloaded = true;
+    ensurePeaksForSrc(src).catch(() => {});
+  }
+
+  function mountPlayerFromSrc(src, title){
+    if (!audio || !dock || !label || !src) return;
+
+    audio.src = src;
+    label.textContent = title || (src.split('/').pop() || 'audio');
+    if (waveProg) waveProg.style.width = '0%';
+
+    // Kick off waveform computation (doesn't block playback)
+    ensurePeaksForSrc(src).catch(() => {});
+
+    audio.play().then(() => {
+      setPlayingVisual(true);
+    }).catch(() => {
+      setPlayingVisual(false);
+    });
+  }
+
+  function playIndex(idx){
+    if (!trackList.length) buildTrackList();
+    if (!trackList.length) return;
+
+    const max = trackList.length;
+
+    // wrap indices
+    if (idx < 0) idx = max - 1;
+    if (idx >= max) idx = 0;
+
+    const btn = trackList[idx];
+    if (!btn) return;
+
+    currentIndex = idx;
+    const src   = btn.dataset.src;
+    const title = btn.dataset.title || '';
+    if (src) mountPlayerFromSrc(src, title);
+  }
+
+  function playFirstIfNeeded(){
+    if (!trackList.length) buildTrackList();
+    if (!trackList.length) return;
+
+    if (currentIndex === -1 || !audio || !audio.src) {
+      playIndex(0);
+    } else if (audio.paused) {
+      audio.play().catch(() => {});
+    }
+  }
+
+  // Waveform → seek
   if (wave && audio) {
     wave.addEventListener('click', (e) => {
       const rect = wave.getBoundingClientRect();
@@ -203,24 +313,125 @@ function typeText(el, text, speed = 18) {
       }
     });
 
-    audio.addEventListener('timeupdate', updateWaveform);
-    audio.addEventListener('loadedmetadata', updateWaveform);
-    audio.addEventListener('play', updateWaveform);
-    audio.addEventListener('seeked', updateWaveform);
+    audio.addEventListener('timeupdate', updateWaveformProgress);
+    audio.addEventListener('loadedmetadata', updateWaveformProgress);
+    audio.addEventListener('seeked', updateWaveformProgress);
+
+    audio.addEventListener('play', () => setPlayingVisual(true));
+    audio.addEventListener('pause', () => setPlayingVisual(false));
+
+    // Autoplay next track when one finishes (loops through all tracks)
+    audio.addEventListener('ended', () => {
+      setPlayingVisual(false);
+      updateWaveformProgress();
+      if (!trackList.length) buildTrackList();
+      if (!trackList.length) return;
+      const nextIndex = currentIndex === -1 ? 0 : currentIndex + 1;
+      playIndex(nextIndex);
+    });
   }
 
-  // D) Click handling for play / cover
-  pane.addEventListener('click', async (e) => {
-    // Any element that can play audio: track title, 'play' button, or cover with .track-play
+  // Playback chips
+  if (btnToggle) {
+    btnToggle.addEventListener('click', () => {
+      if (!audio) return;
+
+      // If nothing has ever been picked, start first track in tree
+      if (!audio.src) {
+        playFirstIfNeeded();
+        return;
+      }
+
+      if (audio.paused) {
+        audio.play().catch(() => {});
+      } else {
+        audio.pause();
+      }
+    });
+  }
+
+  if (btnPrev) {
+    btnPrev.addEventListener('click', () => {
+      if (!trackList.length) buildTrackList();
+      if (!trackList.length) return;
+
+      const nextIndex = currentIndex === -1 ? 0 : currentIndex - 1;
+      playIndex(nextIndex);
+    });
+  }
+
+  if (btnNext) {
+    btnNext.addEventListener('click', () => {
+      if (!trackList.length) buildTrackList();
+      if (!trackList.length) return;
+
+      const nextIndex = currentIndex === -1 ? 0 : currentIndex + 1;
+      playIndex(nextIndex);
+    });
+  }
+
+  // Redraw peaks on resize
+  window.addEventListener('resize', () => {
+    if (currentPeaks) {
+      drawPeaks(currentPeaks);
+    }
+  });
+
+  // Helper: scroll newly opened folder into view if it's clipped
+  function ensureFolderVisible(node){
+    if (!node || !pane) return;
+
+    requestAnimationFrame(() => {
+      const containerRect = pane.getBoundingClientRect();
+      const nodeRect = node.getBoundingClientRect();
+      const overflowBottom = nodeRect.bottom - containerRect.bottom;
+
+      if (overflowBottom > 0) {
+        pane.scrollBy({
+          top: overflowBottom + 12,
+          left: 0,
+          behavior: 'smooth'
+        });
+      }
+    });
+  }
+
+  // Toggle folders + click-to-play
+  pane.addEventListener('click', (e) => {
+    const toggle = e.target.closest('.tree-toggle');
+    if (toggle) {
+      const node     = toggle.closest('.tree-node');
+      const contents = toggle.parentElement?.querySelector(':scope > .tree-contents');
+      const glyph    = toggle.querySelector('.tree-glyph');
+      if (!contents) return;
+
+      const willOpen = contents.hasAttribute('hidden');
+      contents.hidden = !willOpen;
+      toggle.setAttribute('aria-expanded', String(willOpen));
+      if (glyph) glyph.textContent = willOpen ? '▾' : '▸';
+
+      if (willOpen && node) {
+        ensureFolderVisible(node);
+      }
+      return;
+    }
+
+    // Any element that can play audio: track title, '\ play' button, or cover
     const playBtn = e.target.closest('.track-play, .track-playlink');
     if (playBtn) {
       const src   = playBtn.dataset.src;
       const title = playBtn.dataset.title || '';
-      if (src) mountPlayer(playBtn, src, title);
+      if (!src) return;
+
+      // Sync playlist index with this src
+      if (!trackList.length) buildTrackList();
+      const idx = trackList.findIndex(btn => btn.dataset.src === src);
+      if (idx !== -1) currentIndex = idx;
+
+      mountPlayerFromSrc(src, title);
       return;
     }
 
-    // If a cover existed without data-src, fall back to first track in that folder
     const cover = e.target.closest('.tree-cover');
     if (cover && !cover.dataset.src) {
       const node = cover.closest('.tree-node');
@@ -232,41 +443,43 @@ function typeText(el, text, speed = 18) {
     }
   });
 
-  // E) Keyboard support: toggle & play via Enter / Space
+  // Keyboard support: toggle & play via Enter / Space
   pane.addEventListener('keydown', (e) => {
     const isToggle = e.target.classList?.contains('tree-toggle');
     const isPlay   =
       e.target.classList?.contains('track-playlink') ||
       e.target.classList?.contains('track-play');
 
-    // Enter/Space toggles folder open/close
     if (isToggle && (e.key === 'Enter' || e.key === ' ')) {
       e.preventDefault();
       e.target.click();
     }
 
-    // Enter plays the track
     if (isPlay && e.key === 'Enter') {
       e.preventDefault();
       e.target.click();
     }
   });
-  // F) Auto-expand the first release folder on initial load
+
+  // Auto-expand the first release folder on initial load
   const firstToggle = pane.querySelector('.tree-node .tree-toggle');
   if (firstToggle) {
     const contents = firstToggle.parentElement.querySelector(':scope > .tree-contents');
     const glyph    = firstToggle.querySelector('.tree-glyph');
 
     if (contents) {
-      contents.hidden = false;               // show the contents
+      contents.hidden = false;
       firstToggle.setAttribute('aria-expanded', 'true');
-      if (glyph) glyph.textContent = '▾';    // change caret to "open"
+      if (glyph) glyph.textContent = '▾';
     }
   }
+
+  // Pre-draw waveform for the very first track in the release tree
+  preloadFirstWaveform();
 })();
 
 
-// 5) Entry log typewriter (entries type, but do NOT auto-scroll to bottom)
+// 5) Entry log typewriter (entries type, but DO NOT auto-scroll to bottom)
 (function(){
   const entries = Array.from(document.querySelectorAll('.log-entry'));
   if (!entries.length) return;
@@ -283,8 +496,6 @@ function typeText(el, text, speed = 18) {
 
     (function tick(){
       t.textContent = text.slice(0, i++);
-
-      // DO NOT force scroll to bottom; keep user's scroll position
       if (i <= text.length) {
         setTimeout(tick, SPEED_MS);
       }
@@ -292,14 +503,60 @@ function typeText(el, text, speed = 18) {
   });
 })();
 
-// 6) Art gallery: main image + thumbnail grid + fullscreen modal
+// 6) Log images: double-tap/double-click to open fullscreen modal
+(function(){
+  const modal    = document.getElementById('art-modal');
+  const modalImg = document.getElementById('art-modal-img');
+  if (!modal || !modalImg) return;
+
+  const imgs = Array.from(document.querySelectorAll('.log-entry img'));
+  if (!imgs.length) return;
+
+  let lastClickTime = 0;
+  let lastTarget = null;
+  const DOUBLE_MS = 280;
+
+  function openImage(img){
+    modalImg.src = img.src;
+    modalImg.alt = img.alt || 'log entry image';
+    modal.hidden = false;
+    modal.classList.remove('is-closing');
+    modal.classList.add('is-open');
+  }
+
+  imgs.forEach(img => {
+    img.addEventListener('click', () => {
+      const now = Date.now();
+      if (lastTarget === img && (now - lastClickTime) < DOUBLE_MS) {
+        openImage(img);
+      }
+      lastClickTime = now;
+      lastTarget = img;
+    });
+  });
+
+  // Extra ESC handler so ESC also closes when opened from log
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('is-open')) {
+      modal.classList.remove('is-open');
+      modal.classList.add('is-closing');
+      setTimeout(() => {
+        if (!modal.classList.contains('is-open')) {
+          modal.hidden = true;
+          modal.classList.remove('is-closing');
+        }
+      }, 200);
+    }
+  });
+})();
+
+// 7) Art gallery: main image + thumbnail grid + fullscreen modal
 (function(){
   const mainImg = document.getElementById('art-main');
   const metaBox = document.getElementById('art-meta');
   const thumbs  = Array.from(document.querySelectorAll('#pane-art .thumb'));
   if (!mainImg || !thumbs.length) return;
 
-  // Modal elements (optional — will no-op if not present)
   const modal        = document.getElementById('art-modal');
   const modalImg     = document.getElementById('art-modal-img');
   const modalClose   = modal?.querySelector('.modal__close') || null;
@@ -319,7 +576,6 @@ function typeText(el, text, speed = 18) {
     currentIndex = i;
 
     if (src) {
-      // fade-out → swap → fade-in
       mainImg.style.opacity = '0';
       mainImg.addEventListener('load', () => {
         mainImg.style.opacity = '1';
@@ -330,7 +586,6 @@ function typeText(el, text, speed = 18) {
     mainImg.alt = `${title} image`;
     mainImg.dataset.index = String(i);
 
-    // update meta (title + links)
     if (metaBox){
       let titleEl = metaBox.querySelector('.gallery__title');
       let linksEl = metaBox.querySelector('.gallery__links');
@@ -352,7 +607,6 @@ function typeText(el, text, speed = 18) {
       linksEl.innerHTML = parts.join(' ');
     }
 
-    // active thumb styles
     thumbs.forEach(t => {
       t.classList.remove('is-active');
       t.setAttribute('aria-selected','false');
@@ -361,12 +615,10 @@ function typeText(el, text, speed = 18) {
     btn.setAttribute('aria-selected','true');
   }
 
-  // click thumbnails → change main image
   thumbs.forEach((btn, i) => {
     btn.addEventListener('click', () => setActive(i));
   });
 
-  // Simple fullscreen modal for art
   function openModal(index){
     if (!modal || !modalImg) return;
     const btn = thumbs[index];
@@ -390,7 +642,6 @@ function typeText(el, text, speed = 18) {
     modal.classList.add('is-closing');
     modalOpen = false;
 
-    // after animation, hide
     setTimeout(() => {
       if (!modalOpen) {
         modal.hidden = true;
@@ -400,15 +651,12 @@ function typeText(el, text, speed = 18) {
   }
 
   if (modal){
-    // backdrop click
     if (modalBackdrop){
       modalBackdrop.addEventListener('click', closeModal);
     }
-    // close button
     if (modalClose){
       modalClose.addEventListener('click', closeModal);
     }
-    // ESC
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && modalOpen) {
         e.preventDefault();
@@ -417,18 +665,15 @@ function typeText(el, text, speed = 18) {
     });
   }
 
-  // click on main preview → open modal
   mainImg.addEventListener('click', () => {
     openModal(currentIndex);
   });
 
-  // type the initial title once (if server-rendered)
   const initialTitleEl = metaBox?.querySelector('.gallery__title');
   if (initialTitleEl) {
     typeText(initialTitleEl, initialTitleEl.textContent || '', 18);
   }
 
-  // keyboard left/right when focus is inside the thumb grid
   const listbox = document.querySelector('#pane-art .gallery__thumbgrid, #pane-art .gallery__thumbs');
   if (listbox){
     listbox.addEventListener('keydown', (e) => {

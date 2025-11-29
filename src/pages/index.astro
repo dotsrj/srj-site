@@ -120,9 +120,55 @@ const releases = releasesRaw.sort((a, b) => {
 
         <!-- MEDIA PANEL -->
         <section class="panel screen area-media" aria-label="media">
-          <div class="tabs">
-            <button class="tab is-active" data-tab="releases" type="button">releases</button>
-            <button class="tab" data-tab="art" type="button">art</button>
+          <div class="media-header">
+            <div class="tabs">
+              <button class="tab is-active" data-tab="releases" type="button">releases</button>
+              <button class="tab" data-tab="art" type="button">art</button>
+            </div>
+
+            <!-- Inline releases player: fixed next to tabs -->
+            <div id="release-inline-player" class="audio-dock" hidden>
+              <div class="rip-header">
+                <div id="rip-label" class="rip-label">select a track or press play</div>
+
+                <div class="rip-controls" aria-label="playback controls">
+                  <button
+                    id="rip-prev"
+                    class="rip-chip"
+                    type="button"
+                    aria-label="previous track"
+                  >
+                    « prev
+                  </button>
+
+                  <button
+                    id="rip-toggle"
+                    class="rip-chip rip-chip--play"
+                    type="button"
+                    aria-label="play or pause"
+                  >
+                    play
+                  </button>
+
+                  <button
+                    id="rip-next"
+                    class="rip-chip"
+                    type="button"
+                    aria-label="next track"
+                  >
+                    next »
+                  </button>
+                </div>
+              </div>
+
+              <div class="waveform" id="rip-wave" aria-label="waveform scrubber">
+                <canvas id="rip-wave-canvas"></canvas>
+                <div class="waveform__progress" id="rip-wave-progress"></div>
+              </div>
+
+              <!-- Hidden audio element driven by the chips + waveform -->
+              <audio id="rip-audio" preload="none"></audio>
+            </div>
           </div>
 
           <div class="tabpanes">
@@ -203,16 +249,6 @@ const releases = releasesRaw.sort((a, b) => {
                   );
                 })}
               </ul>
-
-              <div id="release-inline-player" class="audio-dock" hidden>
-                <div id="rip-label">select a track to play</div>
-
-                <div class="waveform" id="rip-wave" aria-label="waveform scrubber">
-                  <div class="waveform__progress" id="rip-wave-progress"></div>
-                </div>
-
-                <audio id="rip-audio" controls preload="none"></audio>
-              </div>
             </div>
 
             <!-- ART -->
@@ -289,17 +325,6 @@ const releases = releasesRaw.sort((a, b) => {
             <div id="inbox-status" style="margin-top:6px; font-size:12px; opacity:.8;"></div>
           </section>
 
-          <section class="panel screen area-audio">
-            <iframe
-              class="embed embed--sc"
-              loading="lazy"
-              allow="autoplay"
-              referrerpolicy="no-referrer"
-              src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%253Aplaylists%253A1915958051&amp;color=%23ff5500&amp;auto_play=false&amp;hide_related=false&amp;show_comments=true&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=true&amp;visual=true"
-            >
-            </iframe>
-          </section>
-
           <section class="panel screen area-log">
             <div style="margin-bottom:8px;">entry log</div>
             <div class="log-list">
@@ -316,7 +341,7 @@ const releases = releasesRaw.sort((a, b) => {
 
       </main>
 
-      <!-- Fullscreen art modal -->
+      <!-- Fullscreen art / image modal -->
       <div id="art-modal" class="modal modal--image" hidden>
         <div class="modal__backdrop"></div>
         <div class="modal__window">
