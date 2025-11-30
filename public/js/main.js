@@ -1,13 +1,22 @@
 // Simple typewriter for a single element (clears previous text)
+// with a tiny phosphor trail-style glow on each tick
 function typeText(el, text, speed = 18) {
   if (!el) return;
   el.textContent = '';
   let i = 0;
   (function tick(){
     el.textContent = text.slice(0, i++);
+
+    // phosphor flash on each update
+    el.classList.add('phosphor-beam');
+    setTimeout(() => {
+      el.classList.remove('phosphor-beam');
+    }, 140);
+
     if (i <= text.length) setTimeout(tick, speed);
   })();
 }
+
 
 // 1) Keyboard nudge for horizontal carousels (if any)
 (function(){
@@ -151,7 +160,14 @@ function typeText(el, text, speed = 18) {
     }
     const pct = Math.max(0, Math.min(1, audio.currentTime / dur)) * 100;
     waveProg.style.width = pct + '%';
+
+    // brief phosphor “kick” on movement
+    waveProg.classList.add('wave-pulse');
+    setTimeout(() => {
+      waveProg.classList.remove('wave-pulse');
+    }, 120);
   }
+
 
   function drawPeaks(peaks){
     if (!wave || !waveCanvas || !waveCtx || !peaks || !peaks.length) return;
@@ -496,12 +512,20 @@ function typeText(el, text, speed = 18) {
 
     (function tick(){
       t.textContent = text.slice(0, i++);
+
+      // phosphor trail on log typing as well
+      t.classList.add('phosphor-beam');
+      setTimeout(() => {
+        t.classList.remove('phosphor-beam');
+      }, 120);
+
       if (i <= text.length) {
         setTimeout(tick, SPEED_MS);
       }
     })();
   });
 })();
+
 
 // 6) Log images: double-tap/double-click to open fullscreen modal
 (function(){

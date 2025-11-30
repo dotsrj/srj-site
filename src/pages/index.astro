@@ -74,14 +74,14 @@ const releases = releasesRaw.sort((a, b) => {
       <main class="hub-grid">
 
         <!-- STATUS -->
-        <section class="panel shell-header area-status">
+        <section class="panel panel--raised shell-header area-status">
           <div class="status-label">
             .srj - composer | multi-instrumentalist | visual-multi
           </div>
         </section>
 
         <!-- VIDEO -->
-        <section class="panel screen area-video">
+        <section class="panel panel--sunken screen area-video">
           <div class="wrap">
             <iframe
               class="embed"
@@ -95,7 +95,7 @@ const releases = releasesRaw.sort((a, b) => {
         </section>
 
         <!-- BUY STRIP (CD/Vinyl + Prints) -->
-        <section class="panel area-buy" aria-label="purchase links">
+        <section class="panel panel--raised area-buy" aria-label="purchase links">
           <a
             href="https://payhip.com/dotsrj/collection/cd-vinyl"
             class="buy-button"
@@ -118,7 +118,7 @@ const releases = releasesRaw.sort((a, b) => {
         </section>
 
         <!-- MEDIA PANEL -->
-        <section class="panel screen area-media" aria-label="media">
+        <section class="panel panel--sunken screen area-media" aria-label="media">
           <div class="media-header">
             <div class="tabs">
               <button class="tab is-active" data-tab="releases" type="button">releases</button>
@@ -304,7 +304,7 @@ const releases = releasesRaw.sort((a, b) => {
 
         <!-- RIGHT COLUMN -->
         <aside class="right-stack">
-          <section class="panel inbox" aria-label="visitor input">
+          <section class="panel panel--raised inbox" aria-label="visitor input">
             <form id="inbox-form" class="inbox" method="POST">
               <div class="inbox-row">
                 <input
@@ -324,7 +324,7 @@ const releases = releasesRaw.sort((a, b) => {
             <div id="inbox-status" style="margin-top:6px; font-size:12px; opacity:.8;"></div>
           </section>
 
-          <section class="panel screen area-log">
+          <section class="panel panel--sunken screen area-log">
             <div style="margin-bottom:8px;">entry log</div>
             <div class="log-list">
               {log.map((entry) => (
