@@ -212,9 +212,10 @@ body{
 .media-header{
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-start;   /* keep items grouped left */
+  gap: 14px;                     /* space between tabs/volume and player */
   margin-bottom: 8px;
+  width: 100%;                   /* span full width of media panel */
 }
 
 /* ==========================
@@ -517,9 +518,11 @@ body{
 
 /* Compact inline audio dock next to tabs */
 .audio-dock{
-  flex: 1 1 auto;
-  min-width: 0;
+  /* STRETCH: fill all remaining space between ART tab and right edge */
+  flex: 1 1 0;
+  min-width: 160px;
   max-width: none;
+  align-self: flex-start;
 
   padding: 8px 10px;
   border: 2px solid rgba(202,255,158,0.9);
@@ -532,7 +535,9 @@ body{
 
   display: flex;
   flex-direction: column;
-  transition: box-shadow .2s ease, background-color .2s ease, transform .15s ease;
+  transition: box-shadow .2s ease,
+              background-color .2s ease,
+              transform .15s ease;
 }
 
 /* EQ-ish glow when playing */
@@ -697,6 +702,134 @@ body{
   width:100%;
   display:none;
 }
+
+/* ===========================
+   MEDIA HEADER LAYOUT + VOLUME
+   ========================== */
+
+.media-header-left{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex: 0 0 auto;  /* content-width, do NOT stretch */
+}
+
+/* Volume row under tabs */
+.rip-volume{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(182,255,156,0.55);
+  background: radial-gradient(circle at 0% 50%, rgba(182,255,156,0.18), rgba(0,0,0,0.9));
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.12) inset,
+    0 -1px 0 rgba(0,0,0,0.65) inset,
+    0 0 10px rgba(0,0,0,0.75);
+}
+
+.rip-volume__label{
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #caff9e;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.rip-volume__track{
+  flex: 1 1 auto;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Volume readout text (e.g. 75%) */
+.rip-volume__readout{
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #b6ff9c;
+  opacity: 0.85;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Range slider base style */
+#rip-volume-slider{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(202,255,158,0.9),
+    rgba(140,255,200,0.9)
+  );
+  box-shadow:
+    0 0 6px rgba(202,255,158,0.6),
+    0 0 12px rgba(140,255,200,0.4) inset;
+  outline: none;
+  cursor: pointer;
+}
+
+/* WebKit thumb */
+#rip-volume-slider::-webkit-slider-thumb{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #000;
+  border: 1px solid rgba(202,255,158,0.9);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.9),
+    0 0 8px rgba(202,255,158,0.8);
+}
+
+/* Firefox thumb */
+#rip-volume-slider::-moz-range-thumb{
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #000;
+  border: 1px solid rgba(202,255,158,0.9);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.9),
+    0 0 8px rgba(202,255,158,0.8);
+}
+
+/* Firefox track */
+#rip-volume-slider::-moz-range-track{
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(202,255,158,0.9),
+    rgba(140,255,200,0.9)
+  );
+}
+
+/* Mobile: let volume sit nicely under tabs & player */
+@media (max-width: 640px){
+  .media-header{
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .audio-dock{
+    max-width: 100%;
+  }
+}
+
+
 
 /* ===========================
    RIGHT STACK / INBOX / LOG
@@ -1160,6 +1293,25 @@ body::after{
 /* Slightly soften panel corners inside the chassis so they look seated */
 .hub-shell .panel{ border-radius: 16px; }
 
+/* =============== HUB FOOTER =============== */
+
+.hub-footer{
+  margin-top: 8px;
+  text-align: center;
+  font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: lowercase;
+  color: #222;
+  opacity: 0.9;
+}
+
+.hub-footer__sep{
+  display: inline-block;
+  margin: 0 6px;
+}
+
+
 /* Recessed "screen" look for panels that are displays */
 .panel.screen{
   background: linear-gradient(#030703, #030603) padding-box;
@@ -1345,6 +1497,55 @@ body::after{
   align-items: center;
   justify-content: flex-start;
 }
+
+/* ============================================
+   Shared bezel style (nameplate-like) for panels
+   Applied to: video, buy strip, media, entry log
+   ============================================ */
+.panel--bezel{
+  position: relative;
+
+  /* Let the border-box backgrounds show through */
+  border: 1px solid transparent;
+  border-radius: 16px;
+
+  /* Dual-layer background:
+     - Inner: dark CRT-like screen (padding-box)
+     - Outer: metal bezel gradient (border-box) with light engraving texture
+  */
+  background:
+    /* inner dark screen area */
+    linear-gradient(#030703, #030603) padding-box,
+    /* outer metal bezel */
+    linear-gradient(180deg, #f6f4ea, #efece1 60%, #e7e3d6) border-box,
+    /* tiny engraved texture in the metal */
+    repeating-linear-gradient(
+      135deg,
+      rgba(0,0,0,0.02) 0 2px,
+      rgba(0,0,0,0.015) 2px 4px
+    ) border-box;
+
+  /* Slight bevel + drop shadow like .shell-header */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.35),
+    inset 0 -1px 0 rgba(0,0,0,0.08),
+    0 4px 12px rgba(0,0,0,0.25);
+}
+
+/* Optional: faint green aura when focused/hovered */
+.panel--bezel:focus-within,
+.panel--bezel:hover{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.35),
+    inset 0 -1px 0 rgba(0,0,0,0.08),
+    0 4px 14px rgba(0,0,0,0.35),
+    0 0 18px rgba(158,255,199,0.12);
+  transition: box-shadow .22s ease, transform .22s ease;
+}
+.panel--bezel:hover{
+  transform: translateY(-1px);
+}
+
 
 /* Inner black “screen” window */
 .status-label{

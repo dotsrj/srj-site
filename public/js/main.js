@@ -72,7 +72,8 @@ function typeText(el, text, speed = 18) {
     art:      document.getElementById('pane-art')
   };
 
-  const dock = document.getElementById('release-inline-player');
+  const dock       = document.getElementById('release-inline-player');
+  const volumeRow  = document.getElementById('rip-volume');
 
   function activate(name){
     // tabs
@@ -90,9 +91,13 @@ function typeText(el, text, speed = 18) {
       el.hidden = !show;
     });
 
-    // dock only when releases is active
+    // dock + volume only when releases is active
+    const showReleases = name === 'releases';
     if (dock) {
-      dock.hidden = name !== 'releases';
+      dock.hidden = !showReleases;
+    }
+    if (volumeRow) {
+      volumeRow.hidden = !showReleases;
     }
   }
 
@@ -112,24 +117,67 @@ function typeText(el, text, speed = 18) {
   activate(initial);
 })();
 
+
 // 4) Releases → folder tree + inline player + real waveform + playlist controls
 (function(){
   const pane  = document.getElementById('pane-releases');
   if (!pane) return;
 
-  const dock       = document.getElementById('release-inline-player');
-  const audio      = document.getElementById('rip-audio');
-  const label      = document.getElementById('rip-label');
-  const wave       = document.getElementById('rip-wave');
-  const waveProg   = document.getElementById('rip-wave-progress');
-  const waveCanvas = document.getElementById('rip-wave-canvas');
-  const waveCtx    = waveCanvas ? waveCanvas.getContext('2d') : null;
-  const btnPrev    = document.getElementById('rip-prev');
-  const btnToggle  = document.getElementById('rip-toggle');
-  const btnNext    = document.getElementById('rip-next');
+  const dock         = document.getElementById('release-inline-player');
+  const audio        = document.getElementById('rip-audio');
+  const label        = document.getElementById('rip-label');
+  const wave         = document.getElementById('rip-wave');
+  const waveProg     = document.getElementById('rip-wave-progress');
+  const waveCanvas   = document.getElementById('rip-wave-canvas');
+  const waveCtx      = waveCanvas ? waveCanvas.getContext('2d') : null;
+  const btnPrev      = document.getElementById('rip-prev');
+  const btnToggle    = document.getElementById('rip-toggle');
+  const btnNext      = document.getElementById('rip-next');
 
-  const AudioCtx = window.AudioContext || window.webkitAudioContext || null;
-  const audioCtx = AudioCtx ? new AudioCtx() : null;
+  // Volume controls
+  const volumeRow     = document.getElementById('rip-volume');
+  const volumeSlider  = document.getElementById('rip-volume-slider');
+  const volumeReadout = document.getElementById('rip-volume-readout');
+
+  // Default volume: 75%
+  const DEFAULT_VOL = 75;
+
+  if (audio) {
+    audio.volume = DEFAULT_VOL / 100;
+  }
+  if (volumeSlider) {
+    volumeSlider.value = String(DEFAULT_VOL);
+  }
+  if (volumeReadout) {
+    volumeReadout.textContent = DEFAULT_VOL + '%';
+  }
+
+  if (volumeSlider) {
+    volumeSlider.addEventListener('input', () => {
+      const raw = Number(volumeSlider.value || DEFAULT_VOL);
+      const clamped = Math.max(0, Math.min(100, raw));
+      if (audio) {
+        audio.volume = clamped / 100;
+      }
+      if (volumeReadout) {
+        volumeReadout.textContent = clamped + '%';
+      }
+    });
+  }
+
+  let audioCtx = null;
+
+  function getAudioCtx(){
+    if (audioCtx) return audioCtx;
+    const AC = window.AudioContext || window.webkitAudioContext || null;
+    if (!AC) return null;
+    try {
+      audioCtx = new AC();
+    } catch {
+      audioCtx = null;
+    }
+    return audioCtx;
+  }
 
   let trackList = [];
   let currentIndex = -1;
@@ -140,8 +188,7 @@ function typeText(el, text, speed = 18) {
   let currentPeaks = null;
 
   function buildTrackList(){
-    // Use the "\ play" chips as the canonical list so order is stable
-    trackList = Array.from(pane.querySelectorAll('.track-play'));
+    trackList = Array.from(pane.querySelectorAll('.track-playlink'));
   }
 
   function setPlayingVisual(isPlaying){
@@ -167,7 +214,6 @@ function typeText(el, text, speed = 18) {
       waveProg.classList.remove('wave-pulse');
     }, 120);
   }
-
 
   function drawPeaks(peaks){
     if (!wave || !waveCanvas || !waveCtx || !peaks || !peaks.length) return;
@@ -201,7 +247,9 @@ function typeText(el, text, speed = 18) {
   }
 
   async function computePeaks(src){
-    if (!audioCtx || !src) return null;
+    if (!src) return null;
+    const ctx = getAudioCtx();
+    if (!ctx) return null;
 
     if (peakCache.has(src)) {
       return peakCache.get(src);
@@ -210,7 +258,7 @@ function typeText(el, text, speed = 18) {
     try {
       const res = await fetch(src);
       const buf = await res.arrayBuffer();
-      const decoded = await audioCtx.decodeAudioData(buf);
+      const decoded = await ctx.decodeAudioData(buf);
       const channelData = decoded.getChannelData(0);
 
       const sampleCount = channelData.length;
@@ -275,6 +323,12 @@ function typeText(el, text, speed = 18) {
     audio.src = src;
     label.textContent = title || (src.split('/').pop() || 'audio');
     if (waveProg) waveProg.style.width = '0%';
+
+    // keep volume in sync with slider when loading new track
+    if (volumeSlider) {
+      const value = Number(volumeSlider.value || DEFAULT_VOL);
+      audio.volume = Math.max(0, Math.min(100, value)) / 100;
+    }
 
     // Kick off waveform computation (doesn't block playback)
     ensurePeaksForSrc(src).catch(() => {});
@@ -471,7 +525,7 @@ function typeText(el, text, speed = 18) {
       e.target.click();
     }
 
-    if (isPlay && e.key === 'Enter') {
+    if (isPlay && (e.key === 'Enter' || e.key === ' ')) {
       e.preventDefault();
       e.target.click();
     }
@@ -493,6 +547,7 @@ function typeText(el, text, speed = 18) {
   // Pre-draw waveform for the very first track in the release tree
   preloadFirstWaveform();
 })();
+
 
 
 // 5) Entry log typewriter (entries type, but DO NOT auto-scroll to bottom)
@@ -702,22 +757,68 @@ function typeText(el, text, speed = 18) {
   if (listbox){
     listbox.addEventListener('keydown', (e) => {
       const idx = parseInt(mainImg.dataset.index || '0', 10);
+      const currentThumb = thumbs[idx];
+      if (!currentThumb) return;
+
+      // helper: find nearest thumb on the row above/below
+      function moveVertical(dir){
+        const currentRect = currentThumb.getBoundingClientRect();
+        const currentTop  = currentRect.top;
+
+        // dir > 0 => down; dir < 0 => up
+        const candidates = thumbs
+          .map((t, i) => ({ t, i, rect: t.getBoundingClientRect() }))
+          .filter(({ rect }) => {
+            if (dir > 0) {
+              return rect.top > currentTop + 4; // below current row
+            } else {
+              return rect.top < currentTop - 4; // above current row
+            }
+          });
+
+        if (!candidates.length) return idx;
+
+        // sort by vertical distance first, then horizontal distance
+        candidates.sort((a, b) => {
+          const dTopA = Math.abs(a.rect.top - currentTop);
+          const dTopB = Math.abs(b.rect.top - currentTop);
+          if (dTopA !== dTopB) return dTopA - dTopB;
+          const dLeftA = Math.abs(a.rect.left - currentRect.left);
+          const dLeftB = Math.abs(b.rect.left - currentRect.left);
+          return dLeftA - dLeftB;
+        });
+
+        return candidates[0].i;
+      }
+
+      let targetIndex = idx;
+
       if (e.key === 'ArrowRight') {
         e.preventDefault();
-        setActive(Math.min(idx+1, thumbs.length-1));
-      }
-      if (e.key === 'ArrowLeft')  {
+        targetIndex = Math.min(idx + 1, thumbs.length - 1);
+      } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        setActive(Math.max(idx-1, 0));
-      }
-      if (e.key === 'Home') {
+        targetIndex = Math.max(idx - 1, 0);
+      } else if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setActive(0);
-      }
-      if (e.key === 'End') {
+        targetIndex = moveVertical(1);
+      } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setActive(thumbs.length-1);
+        targetIndex = moveVertical(-1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        targetIndex = 0;
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        targetIndex = thumbs.length - 1;
+      } else {
+        return; // ignore other keys
+      }
+
+      if (targetIndex !== idx) {
+        setActive(targetIndex);
       }
     });
   }
+
 })();

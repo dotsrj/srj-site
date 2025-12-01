@@ -81,7 +81,7 @@ const releases = releasesRaw.sort((a, b) => {
         </section>
 
         <!-- VIDEO -->
-        <section class="panel panel--sunken screen area-video">
+        <section class="panel panel--bezel screen area-video">
           <div class="wrap">
             <iframe
               class="embed"
@@ -95,7 +95,7 @@ const releases = releasesRaw.sort((a, b) => {
         </section>
 
         <!-- BUY STRIP (CD/Vinyl + Prints) -->
-        <section class="panel panel--raised area-buy" aria-label="purchase links">
+        <section class="panel panel--bezel area-buy" aria-label="purchase links">
           <a
             href="https://payhip.com/dotsrj/collection/cd-vinyl"
             class="buy-button"
@@ -117,12 +117,31 @@ const releases = releasesRaw.sort((a, b) => {
           </a>
         </section>
 
-        <!-- MEDIA PANEL -->
-        <section class="panel panel--sunken screen area-media" aria-label="media">
+                <!-- MEDIA PANEL -->
+        <section class="panel panel--bezel screen area-media" aria-label="media">
           <div class="media-header">
-            <div class="tabs">
-              <button class="tab is-active" data-tab="releases" type="button">releases</button>
-              <button class="tab" data-tab="art" type="button">art</button>
+            <div class="media-header-left">
+              <div class="tabs">
+                <button class="tab is-active" data-tab="releases" type="button">releases</button>
+                <button class="tab" data-tab="art" type="button">art</button>
+              </div>
+
+              <!-- Volume slider (only visible on "releases") -->
+              <div id="rip-volume" class="rip-volume" hidden>
+                <span class="rip-volume__label">volume</span>
+                <div class="rip-volume__track">
+                  <input
+                    id="rip-volume-slider"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="75"
+                    step="1"
+                    aria-label="player volume"
+                  />
+                  <span id="rip-volume-readout" class="rip-volume__readout">75%</span>
+                </div>
+              </div>
             </div>
 
             <!-- Inline releases player: fixed next to tabs -->
@@ -169,6 +188,7 @@ const releases = releasesRaw.sort((a, b) => {
               <audio id="rip-audio" preload="none"></audio>
             </div>
           </div>
+
 
           <div class="tabpanes">
 
@@ -276,7 +296,7 @@ const releases = releasesRaw.sort((a, b) => {
                   </div>
                 </div>
 
-                <div class="gallery__thumbgrid" role="listbox">
+              <div class="gallery__thumbgrid" role="listbox" tabindex="0">
                   {artworks.map((a, i) => (
                     <button
                       type="button"
@@ -324,7 +344,7 @@ const releases = releasesRaw.sort((a, b) => {
             <div id="inbox-status" style="margin-top:6px; font-size:12px; opacity:.8;"></div>
           </section>
 
-          <section class="panel panel--sunken screen area-log">
+          <section class="panel panel--bezel screen area-log">
             <div style="margin-bottom:8px;">entry log</div>
             <div class="log-list">
               {log.map((entry) => (
@@ -339,6 +359,12 @@ const releases = releasesRaw.sort((a, b) => {
         </aside>
 
       </main>
+
+      <footer class="hub-footer">
+        <span>&#123; ig: @dotsrj &#125;</span>
+        <span class="hub-footer__sep">·</span>
+        <span>&#123; email: dotsrj11001010@gmail.com &#125;</span>
+      </footer>
 
       <!-- Fullscreen art / image modal -->
       <div id="art-modal" class="modal modal--image" hidden>
